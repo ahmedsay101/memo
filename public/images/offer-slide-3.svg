@@ -1,0 +1,47 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#gradient3)"/>
+  
+  <!-- Pizza 1 -->
+  <circle cx="220" cy="160" r="80" fill="#D2691E"/>
+  <circle cx="220" cy="160" r="65" fill="#F4A460"/>
+  
+  <!-- Pizza 1 toppings -->
+  <circle cx="200" cy="140" r="5" fill="#DC143C"/>
+  <circle cx="240" cy="150" r="4" fill="#228B22"/>
+  <circle cx="210" cy="175" r="4" fill="#8B4513"/>
+  
+  <!-- Pizza 2 -->
+  <circle cx="380" cy="240" r="80" fill="#D2691E"/>
+  <circle cx="380" cy="240" r="65" fill="#F4A460"/>
+  
+  <!-- Pizza 2 toppings -->
+  <circle cx="360" cy="220" r="5" fill="#FF6347"/>
+  <circle cx="400" cy="230" r="4" fill="#32CD32"/>
+  <circle cx="370" cy="255" r="4" fill="#DC143C"/>
+  
+  <!-- Offer text -->
+  <rect x="650" y="100" width="320" height="60" rx="10" fill="#8B0000"/>
+  <text x="810" y="135" text-anchor="middle" fill="white" font-size="26" font-weight="bold" font-family="Arial">وجبة عائلية</text>
+  
+  <rect x="650" y="180" width="400" height="50" rx="8" fill="#B22222"/>
+  <text x="850" y="210" text-anchor="middle" fill="white" font-size="22" font-weight="bold" font-family="Arial">بيتزا كبيرة + مشروبات</text>
+  
+  <rect x="650" y="250" width="300" height="40" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="800" y="275" text-anchor="middle" fill="white" font-size="18" font-family="Arial">عرض مميز للعائلة</text>
+  
+  <!-- Drinks -->
+  <rect x="520" y="120" width="20" height="40" rx="10" fill="#4169E1"/>
+  <rect x="520" y="100" width="20" height="20" rx="3" fill="#FF6347"/>
+  
+  <rect x="550" y="120" width="20" height="40" rx="10" fill="#4169E1"/>
+  <rect x="550" y="100" width="20" height="20" rx="3" fill="#FF6347"/>
+  
+  <!-- Gradient definitions -->  
+  <defs>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

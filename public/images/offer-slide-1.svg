@@ -1,0 +1,33 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#gradient1)"/>
+  
+  <!-- Pizza -->
+  <circle cx="300" cy="200" r="120" fill="#D2691E"/>
+  <circle cx="300" cy="200" r="100" fill="#F4A460"/>
+  
+  <!-- Pizza toppings -->
+  <circle cx="270" cy="170" r="8" fill="#DC143C"/>
+  <circle cx="320" cy="180" r="6" fill="#228B22"/>
+  <circle cx="280" cy="220" r="7" fill="#8B4513"/>
+  <circle cx="330" cy="220" r="5" fill="#FF6347"/>
+  <circle cx="300" cy="200" r="6" fill="#DC143C"/>
+  
+  <!-- Offer text -->
+  <rect x="700" y="120" width="300" height="60" rx="10" fill="#DC143C"/>
+  <text x="850" y="155" text-anchor="middle" fill="white" font-size="28" font-weight="bold" font-family="Arial">اشتر 1 بيتزا</text>
+  
+  <rect x="700" y="200" width="350" height="50" rx="8" fill="#B22222"/>
+  <text x="875" y="230" text-anchor="middle" fill="white" font-size="24" font-weight="bold" font-family="Arial">احصل على 1 مجاناً</text>
+  
+  <rect x="700" y="270" width="250" height="40" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="825" y="295" text-anchor="middle" fill="white" font-size="18" font-family="Arial">اطلب عبر الإنترنت</text>
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DC143C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

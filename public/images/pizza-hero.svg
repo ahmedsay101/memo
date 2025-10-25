@@ -1,0 +1,79 @@
+<svg width="600" height="600" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Orange paint splash background -->
+  <path d="M50 300C80 120 150 80 250 100C350 80 420 100 550 200C580 300 550 450 450 500C350 550 250 520 150 450C50 400 50 300 50 300Z" fill="#E97420"/>
+  <path d="M70 320C90 160 140 120 220 130C300 120 360 140 480 220C520 280 500 420 420 460C340 500 260 480 180 420C100 360 70 320 70 320Z" fill="#F59E0B"/>
+  
+  <!-- Award badge with ribbon -->
+  <ellipse cx="120" cy="400" rx="40" ry="50" fill="#E97420" transform="rotate(-30 120 400)"/>
+  <ellipse cx="110" cy="380" rx="40" ry="50" fill="#DC2626" transform="rotate(-30 110 380)"/>
+  <circle cx="120" cy="380" r="35" fill="#0F766E"/>
+  <circle cx="120" cy="380" r="25" fill="#14B8A6"/>
+  <text x="120" y="390" text-anchor="middle" fill="white" font-size="24" font-weight="bold">١</text>
+  <text x="140" y="400" text-anchor="middle" fill="white" font-size="12">جائزة الجودة</text>
+  
+  <!-- Pizza character - triangular pizza slice head -->
+  <path d="M300 150L220 300L380 300Z" fill="#F4D03F"/>
+  <path d="M295 160L230 290L360 290Z" fill="#F7DC6F"/>
+  <circle cx="300" cy="300" r="70" fill="#F4D03F"/>
+  
+  <!-- Pizza toppings on head -->
+  <circle cx="280" cy="200" r="8" fill="#DC2626"/>
+  <circle cx="320" cy="220" r="6" fill="#16A085"/>
+  <circle cx="290" cy="240" r="5" fill="#8B4513"/>
+  <circle cx="315" cy="190" r="7" fill="#DC2626"/>
+  <circle cx="305" cy="260" r="6" fill="#16A085"/>
+  
+  <!-- Eyes with cool sunglasses -->
+  <rect x="270" y="210" width="60" height="20" rx="10" fill="#1F2937"/>
+  <rect x="265" y="205" width="5" height="30" rx="2" fill="#1F2937"/>
+  <rect x="330" y="205" width="5" height="30" rx="2" fill="#1F2937"/>
+  <ellipse cx="285" cy="220" rx="10" ry="8" fill="#374151"/>
+  <ellipse cx="315" cy="220" rx="10" ry="8" fill="#374151"/>
+  
+  <!-- Big smile -->
+  <path d="M280 250C285 265 300 275 320 250" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="300" cy="255" rx="15" ry="8" fill="white"/>
+  
+  <!-- Teal arms making peace signs -->
+  <ellipse cx="180" cy="350" rx="20" ry="50" fill="#0F766E" transform="rotate(-45 180 350)"/>
+  <ellipse cx="420" cy="350" rx="20" ry="50" fill="#0F766E" transform="rotate(45 420 350)"/>
+  
+  <!-- White gloved hands with peace signs -->
+  <circle cx="150" cy="320" r="18" fill="white"/>
+  <rect x="142" y="305" width="4" height="20" fill="white" rx="2"/>
+  <rect x="154" y="305" width="4" height="20" fill="white" rx="2"/>
+  
+  <circle cx="450" cy="320" r="18" fill="white"/>
+  <rect x="442" y="305" width="4" height="20" fill="white" rx="2"/>
+  <rect x="454" y="305" width="4" height="20" fill="white" rx="2"/>
+  
+  <!-- Teal legs -->
+  <ellipse cx="270" cy="420" rx="18" ry="40" fill="#0F766E"/>
+  <ellipse cx="330" cy="420" rx="18" ry="40" fill="#0F766E"/>
+  
+  <!-- Orange and teal sneakers -->
+  <ellipse cx="270" cy="470" rx="25" ry="15" fill="#E97420"/>
+  <ellipse cx="330" cy="470" rx="25" ry="15" fill="#E97420"/>
+  <ellipse cx="270" cy="465" rx="20" ry="10" fill="#0F766E"/>
+  <ellipse cx="330" cy="465" rx="20" ry="10" fill="#0F766E"/>
+  <ellipse cx="270" cy="462" rx="15" ry="6" fill="white"/>
+  <ellipse cx="330" cy="462" rx="15" ry="6" fill="white"/>
+  
+  <!-- Decorative stars around -->
+  <g fill="#FCD34D">
+    <path d="M100 150L105 165L120 165L108 175L113 190L100 183L87 190L92 175L80 165L95 165Z"/>
+    <path d="M500 180L505 195L520 195L508 205L513 220L500 213L487 220L492 205L480 195L495 195Z"/>
+    <path d="M480 480L485 495L500 495L488 505L493 520L480 513L467 520L472 505L460 495L475 495Z"/>
+    <path d="M120 500L125 515L140 515L128 525L133 540L120 533L107 540L112 525L100 515L115 515Z"/>
+  </g>
+  
+  <!-- Small sparkle dots -->
+  <g fill="#FCD34D">
+    <circle cx="450" cy="120" r="3"/>
+    <circle cx="80" cy="250" r="4"/>
+    <circle cx="520" cy="350" r="3"/>
+    <circle cx="60" cy="180" r="2"/>
+    <circle cx="540" cy="480" r="4"/>
+    <circle cx="90" cy="450" r="3"/>
+  </g>
+</svg>

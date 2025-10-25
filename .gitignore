@@ -1,0 +1,65 @@
+# Node dependencies
+node_modules/
+node_modules
+/node_modules
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env files
+.env
+.env*.local
+!.env.example
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Coverage / testing
+coverage/
+.nyc_output/
+
+# Production build
+build/
+*.tsbuildinfo
+
+# Cache
+.cache/
+.parcel-cache/
+.rpt2_cache*/
+.rts2_cache_*/
+.yarn/
+.yarn-integrity
+
+# Misc
+*.pem
+*.sw?
+*~
+tmp/
+temp/
+
+# Uploads (if any)
+uploads/
+public/uploads/
+
+# Database
+*.sqlite*
+*.db
+
+# Vercel
+.vercel/
+
+# Storybook
+.storybook-out/
+storybook-static/
