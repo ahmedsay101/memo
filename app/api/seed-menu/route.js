@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
-import { Category, Subcategory } from '@/models/Menu'
+import { Category, Subcategory } from '@/models/Category'
 
 export async function POST() {
   try {
