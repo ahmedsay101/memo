@@ -22,6 +22,7 @@ export default function ProductsPage() {
     category: 'topping',
     price: 0,
     image: '',
+    imageFile: null,
     description: '',
     applicableCategories: ['pizza'],
     isAvailable: true
@@ -107,18 +108,50 @@ export default function ProductsPage() {
     e.preventDefault()
     
     try {
+      let imageUrl = addonFormData.image
+
+      // Upload image if a new file was selected
+      if (addonFormData.imageFile) {
+        const uploadFormData = new FormData()
+        uploadFormData.append('image', addonFormData.imageFile)
+
+        const uploadResponse = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          },
+          body: uploadFormData
+        })
+
+        const uploadData = await uploadResponse.json()
+        
+        if (uploadData.success) {
+          imageUrl = uploadData.imagePath
+        } else {
+          alert(uploadData.error || 'فشل في رفع الصورة')
+          return
+        }
+      }
+
       const url = editingAddon 
         ? `/api/admin/addons/${editingAddon._id}`
         : '/api/admin/addons'
       
       const method = editingAddon ? 'PUT' : 'POST'
       
+      const submitData = {
+        ...addonFormData,
+        image: imageUrl
+      }
+      delete submitData.imageFile // Remove the file object before sending
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         },
-        body: JSON.stringify(addonFormData),
+        body: JSON.stringify(submitData),
       })
       
       const data = await response.json()
@@ -132,6 +165,7 @@ export default function ProductsPage() {
           category: 'topping',
           price: 0,
           image: '',
+          imageFile: null,
           description: '',
           applicableCategories: ['pizza'],
           isAvailable: true
@@ -141,7 +175,7 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error('Error saving addon:', error)
-      alert('حدث خطأ في الحفظ')
+      alert('حدث خطأ في الاتصال')
     }
   }
 
@@ -152,6 +186,7 @@ export default function ProductsPage() {
       category: addon.category,
       price: addon.price,
       image: addon.image || '',
+      imageFile: null,
       description: addon.description || '',
       applicableCategories: addon.applicableCategories || ['pizza'],
       isAvailable: addon.isAvailable
@@ -650,15 +685,30 @@ export default function ProductsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    رابط الصورة
+                    صورة الإضافة
                   </label>
                   <input
-                    type="url"
-                    value={addonFormData.image}
-                    onChange={(e) => setAddonFormData({...addonFormData, image: e.target.value})}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0]
+                      if (file) {
+                        setAddonFormData({...addonFormData, imageFile: file})
+                      }
+                    }}
                     className="w-full p-2 border border-gray-300 rounded-lg"
-                    placeholder="https://example.com/image.jpg"
                   />
+                  {addonFormData.image && (
+                    <div className="mt-2">
+                      <Image
+                        src={addonFormData.image}
+                        alt="معاينة الصورة"
+                        width={80}
+                        height={80}
+                        className="object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
