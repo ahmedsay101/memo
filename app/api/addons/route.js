@@ -9,14 +9,14 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     
-    let query = { isAvailable: true }
+    let query = { available: true }
     
     // If category is provided, filter by both category and applicableCategories
     if (category) {
       if (category === 'topping') {
         // For toppings, we want addons that have category='topping' AND are applicable to 'pizza'
         query = {
-          isAvailable: true,
+          available: true,
           category: 'topping',
           applicableCategories: { $in: ['pizza'] }
         }
