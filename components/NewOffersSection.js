@@ -57,8 +57,8 @@ export default function NewOffersSection() {
         </div>
 
         {/* Slider Container */}
-        <div className="relative max-w-6xl mx-auto px-16">
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl h-80 lg:h-96">
+        <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl aspect-[16/9] sm:aspect-[20/9] lg:aspect-[24/9]">
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -67,13 +67,13 @@ export default function NewOffersSection() {
                   index < currentSlide ? 'translate-x-full' : '-translate-x-full'
                 }`}
               >
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full bg-white">
                   <Image
                     src={slide.image}
                     alt={slide.alt}
                     fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                     priority={index === 0}
                   />
                 </div>
@@ -81,24 +81,23 @@ export default function NewOffersSection() {
             ))}
           </div>
 
-          {/* Navigation Arrows - Outside the image */}
+          {/* Navigation Arrows - Hidden on mobile */}
           <button
             onClick={prevSlide}
-            className="absolute -right-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 p-3 rounded-full shadow-lg transition-all duration-200 z-10"
+            className="absolute right-2 sm:-right-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 p-2 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-10 hidden sm:block"
           >
-            <svg className="w-6 h-6" fill="none" stroke="#007B7D" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="#007B7D" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
           
           <button
             onClick={nextSlide}
-            className="absolute -left-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 p-3 rounded-full shadow-lg transition-all duration-200 z-10"
+            className="absolute left-2 sm:-left-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 p-2 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-10 hidden sm:block"
           >
-            <svg className="w-6 h-6" fill="none" stroke="#007B7D" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="#007B7D" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-
           </button>
 
           {/* Dots Indicator */}

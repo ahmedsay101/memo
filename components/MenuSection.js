@@ -181,7 +181,7 @@ export default function MenuSection() {
 
 
   return (
-    <section className="py-24 px-4 bg-white">
+    <section id="menu-section" className="py-24 px-4 bg-white">
       <div className="container mx-auto" dir="rtl">
         {/* Section Title */}
         <div className="text-center mb-12">

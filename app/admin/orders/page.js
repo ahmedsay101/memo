@@ -180,31 +180,18 @@ export default function OrdersPage() {
 
   const OrderCard = ({ order }) => (
     <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+      {/* First Row - Order Header and Price */}
       <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-4 mb-2">
-            <h3 className="text-lg font-semibold text-gray-800">
-              طلب #{order.id}
-            </h3>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-              {getStatusText(order.status)}
-            </span>
-          </div>
-          <div className="text-sm text-gray-600 mb-2">
-            <p><strong>العميل:</strong> {order.customerName}</p>
-            <p><strong>الهاتف:</strong> {order.phone}</p>
-            <p><strong>العنوان:</strong> {order.address}</p>
-            <p><strong>الفرع:</strong> {order.branch}</p>
-          </div>
-          <div className="text-sm text-gray-500">
-            <p>تاريخ الطلب: {formatDate(order.createdAt)}</p>
-            {order.updatedAt !== order.createdAt && (
-              <p>آخر تحديث: {formatDate(order.updatedAt)}</p>
-            )}
-          </div>
+        <div className="flex items-center gap-4 flex-wrap">
+          <h3 className="text-lg font-semibold text-gray-800">
+            طلب #{order.id}
+          </h3>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
+            {getStatusText(order.status)}
+          </span>
         </div>
-        <div className="text-left">
-          <div className="text-2xl font-bold text-teal-600 mb-2">
+        <div className="text-left flex-shrink-0">
+          <div className="text-xl sm:text-2xl font-bold text-teal-600 mb-1">
             {order.totalAmount} جنيه
           </div>
           <button
@@ -215,15 +202,32 @@ export default function OrdersPage() {
           </button>
         </div>
       </div>
+      
+      {/* Second Row - Customer Details and Timestamps */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div className="text-sm text-gray-600">
+          <p><strong>العميل:</strong> {order.customerName}</p>
+          <p><strong>الهاتف:</strong> {order.phone}</p>
+          <p><strong>العنوان:</strong> {order.address}</p>
+          <p><strong>الفرع:</strong> {order.branch}</p>
+        </div>
+        <div className="text-sm text-gray-500">
+          <p>تاريخ الطلب: {formatDate(order.createdAt)}</p>
+          {order.updatedAt !== order.createdAt && (
+            <p>آخر تحديث: {formatDate(order.updatedAt)}</p>
+          )}
+          <p className="mt-1"><strong>عدد الأصناف:</strong> {order.items.length}</p>
+        </div>
+      </div>
 
       <div className="border-t pt-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">تغيير الحالة:</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-sm text-gray-600 whitespace-nowrap">تغيير الحالة:</span>
             <select
               value={order.status}
               onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 flex-1 sm:flex-none min-w-0"
             >
               <option value="pending">في الانتظار</option>
               <option value="confirmed">مؤكد</option>
@@ -233,19 +237,16 @@ export default function OrdersPage() {
               <option value="cancelled">ملغي</option>
             </select>
           </div>
-          <div className="text-sm text-gray-600">
-            عدد الأصناف: {order.items.length}
-          </div>
           
           {/* Quick customization summary */}
-          <div className="mt-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {order.items.some(item => item.customization) && (
-              <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full inline-block">
+              <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
                 يحتوي على تخصيصات
               </div>
             )}
             {order.items.some(item => item.customization?.leftSide && item.customization?.rightSide) && (
-              <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full inline-block ml-1">
+              <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
                 بيتزا نص ونص
               </div>
             )}
@@ -259,8 +260,9 @@ export default function OrdersPage() {
     <AdminLayout>
       <div className="p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
+        <div className="mb-8">
+          {/* First Row - Title and Description */}
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               إدارة الطلبات
             </h1>
@@ -276,12 +278,14 @@ export default function OrdersPage() {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Second Row - Filters and Actions */}
+          <div className="flex flex-wrap items-center gap-4">
             {/* Status Filter */}
             <select
               value={filter}
               onChange={(e) => handleFilterChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-0 flex-shrink-0"
             >
               <option value="all">جميع الطلبات</option>
               <option value="pending">في الانتظار</option>
@@ -296,7 +300,7 @@ export default function OrdersPage() {
             <select
               value={timeFilter}
               onChange={(e) => handleTimeFilterChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-shrink-0"
             >
               <option value="all">كل الأوقات</option>
               <option value="1h">آخر ساعة</option>
@@ -305,6 +309,7 @@ export default function OrdersPage() {
               <option value="1m">آخر شهر</option>
               <option value="1y">آخر سنة</option>
             </select>
+            
             {/* Reset Filters Button */}
             {(filter !== 'all' || timeFilter !== 'all') && (
               <button
@@ -313,7 +318,7 @@ export default function OrdersPage() {
                   setTimeFilter('all')
                   setCurrentPage(1)
                 }}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold flex-shrink-0"
               >
                 إزالة الفلاتر
               </button>
@@ -321,7 +326,7 @@ export default function OrdersPage() {
             
             <button
               onClick={fetchOrders}
-              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold"
+              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold flex-shrink-0"
             >
               تحديث
             </button>

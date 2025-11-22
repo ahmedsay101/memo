@@ -2,9 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const [cartCount, setCartCount] = useState(0)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const router = useRouter()
+
+  // Navigation links array for easier management
+  const navLinks = [
+    { href: '/', label: 'الرئيسية' },
+    { href: '/about', label: 'عن ميموز' },
+    { href: '/contact', label: 'تواصل معنا' },
+    { href: '#', label: 'وظائف ميموز' }
+  ]
 
   useEffect(() => {
     // Get cart count from localStorage - calculate total quantity
@@ -28,14 +39,74 @@ export default function Header() {
     }
   }, [])
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
+  const scrollToMenu = () => {
+    closeMobileMenu()
+    
+    // Check if we're already on the home page
+    if (window.location.pathname === '/') {
+      // We're on home page, just scroll to menu section
+      const menuSection = document.getElementById('menu-section')
+      if (menuSection) {
+        const offset = menuSection.getBoundingClientRect().top + window.pageYOffset - 100
+        window.scrollTo({ top: offset, behavior: 'smooth' })
+      }
+    } else {
+      // We're on a different page, navigate to home first
+      router.push('/')
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        const menuSection = document.getElementById('menu-section')
+        if (menuSection) {
+          const offset = menuSection.getBoundingClientRect().top + window.pageYOffset - 100
+          window.scrollTo({ top: offset, behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 shadow-lg" style={{ backgroundColor: '#00A4A6' }}>
-      <nav className="relative z-10 container mx-auto px-6 py-6" dir="rtl">
-        <div className="flex items-center justify-between">
-          
-          {/* Right side - Logo */}
-          <div className="flex items-center">
-            <svg width="215" height="48" viewBox="0 0 215 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 w-auto">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg" style={{ backgroundColor: '#00A4A6' }}>
+        <nav className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6" dir="rtl">
+          <div className="flex items-center justify-between gap-3">
+            
+            {/* Right side - Logo + Mobile Menu Button */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleMobileMenu}
+                className="lg:hidden text-white p-2 rounded-md hover:bg-white/10 transition-colors"
+                aria-label="القائمة الرئيسية"
+                aria-expanded={isMobileMenuOpen}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              <Link href="/" onClick={closeMobileMenu} className="flex items-center">
+                <svg width="215" height="48" viewBox="0 0 215 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-8 sm:h-10 w-auto">
               <g clipPath="url(#clip0_3247_25811)">
                 <path d="M149.679 37.4474C149.066 37.0988 148.674 37.5028 148.243 37.9393C147.27 38.9298 146.291 39.93 145.194 40.7705C144.437 41.3537 143.481 41.6795 142.55 42.1519C142.524 41.9011 142.495 41.8392 142.514 41.8066C143.836 39.425 143.572 37.1542 142.152 34.8964C141.633 34.0688 141.241 33.1305 140.954 32.1922C140.38 30.3059 140.566 29.8693 142.191 28.7518C143.272 28.009 144.388 27.3118 145.498 26.6048C145.994 26.2888 146.144 25.8978 145.795 25.3993C145.413 24.852 145.028 24.3014 144.603 23.7899C144.169 23.2719 143.592 23.1806 142.997 23.4706C138.47 25.66 135.114 28.9049 133.714 33.8701C133.551 34.45 133.489 35.0919 133.538 35.6913C133.597 36.4276 134.455 36.8121 134.971 36.3592C135.225 36.1377 135.353 35.7369 135.467 35.3916C135.718 34.6194 135.927 33.831 136.152 33.0523C136.241 33.0589 136.329 33.0654 136.417 33.0719C136.91 35.3753 138.01 37.5777 137.745 39.9984C137.641 40.953 137.171 41.963 136.593 42.7449C135.784 43.8461 134.651 43.7451 133.854 42.6439C133.417 42.0411 133.002 41.3798 132.777 40.6793C132.206 38.907 131.746 37.0988 131.21 35.1929C131.018 35.2482 130.682 35.3264 130.362 35.447C127.649 36.4537 126.908 38.4346 128.387 40.9139C129.771 43.2336 131.808 44.8463 134.468 45.3057C138.48 46.0029 142.266 45.12 145.746 43.0381C147.44 42.0249 148.935 40.7575 149.914 38.9917C150.224 38.428 150.352 37.8318 149.679 37.4474ZM170.227 30.3678C169.052 30.3482 168.236 31.0487 168.23 32.0815C168.227 33.0067 168.866 33.5769 169.921 33.5899C171.079 33.5997 171.938 32.821 171.922 31.7687C171.912 30.8956 171.288 30.3841 170.227 30.3678ZM191.22 18.4337C189.395 18.4207 187.818 20.0041 187.841 21.8253C187.867 23.653 189.365 25.1322 191.197 25.1387C193.09 25.1419 194.549 23.6726 194.536 21.7667C194.526 19.9226 193.054 18.4468 191.22 18.4337ZM196.067 14.0517C195.303 14.0485 194.627 14.7196 194.621 15.482C194.611 16.2509 195.27 16.8992 196.057 16.9025C196.883 16.9057 197.474 16.316 197.477 15.4918C197.48 14.6968 196.85 14.0517 196.067 14.0517ZM199.233 29.0971C198.43 29.1004 197.807 29.7292 197.813 30.5209C197.823 31.2996 198.482 31.9642 199.246 31.9577C200.026 31.9544 200.656 31.3028 200.653 30.5079C200.65 29.6901 200.049 29.0939 199.233 29.0971ZM203.61 20.3722C202.311 20.3462 201.205 21.4343 201.198 22.7473C201.188 24.0864 202.239 25.1419 203.575 25.1387C204.91 25.1354 205.967 24.0733 205.957 22.7441C205.948 21.4669 204.887 20.3983 203.61 20.3722ZM206.033 9.4091C204.893 9.38629 203.937 10.3246 203.924 11.4779C203.908 12.6541 204.792 13.5924 205.948 13.6249C207.084 13.6575 208.043 12.7192 208.063 11.5626C208.079 10.3995 207.168 9.4319 206.033 9.4091Z" fill="white"/>
                 <path d="M152.49 47.9868H151.396C139.041 47.9607 126.683 47.9183 114.325 47.9086C95.8723 47.8955 77.4197 47.964 58.9672 47.8792C45.7243 47.8173 32.4847 47.573 19.2418 47.3971C13.4675 47.3189 7.69634 47.2081 1.92196 47.1136C1.75875 47.1136 1.59228 47.0778 1.43886 47.1071C0.495507 47.2733 0.495507 46.2893 -0.000651979 45.9147C-0.016973 45.9016 0.123388 45.5498 0.244163 45.5074C0.985137 45.2468 1.72938 44.9145 2.49973 44.8167C3.88049 44.6441 5.28083 44.5984 6.67791 44.5496C6.99453 44.5398 7.35686 44.6766 7.63105 44.8493C10.6113 46.752 13.8428 47.3449 17.2507 46.4718C18.3278 46.1949 19.2712 45.4097 20.2896 44.8917C20.6552 44.706 21.0665 44.5072 21.4582 44.5072C23.877 44.4877 26.2925 44.5072 28.7113 44.5659C29.054 44.5756 29.4816 44.7874 29.7167 45.0415C31.3651 46.8237 32.9645 47.0941 34.8904 45.628C35.9415 44.8232 36.986 44.5203 38.2819 44.5854C40.2633 44.6832 42.2577 44.6082 44.2424 44.6538C44.6438 44.6636 45.0976 44.8004 45.424 45.0252C48.3977 47.068 51.8904 47.0908 54.8412 45.0513C56.0392 44.227 56.79 44.2498 58.063 45.022C60.7233 46.6347 63.6187 46.9279 66.6021 46.2763C67.8458 46.0059 69.0242 45.4423 70.2483 45.0546C70.4931 44.9764 70.8783 44.9894 71.0643 45.136C72.5136 46.2861 74.1914 46.6217 75.9802 46.5532C76.9464 46.5141 77.6515 46.0841 77.9583 45.0839C78.0236 44.8721 78.3794 44.618 78.6079 44.6082C79.6361 44.5659 80.5697 44.5822 81.4967 45.3771C82.8252 46.5239 84.5716 46.7129 86.3016 46.5109C87.1013 46.4164 87.6563 45.9603 87.9207 45.1425C87.9925 44.9275 88.3548 44.6734 88.5866 44.6701C89.8204 44.6506 91.0576 44.6897 92.2914 44.7483C92.5362 44.7581 92.8039 44.8819 93.0128 45.0252C96.0322 47.1071 99.6881 47.1038 102.73 44.9992C103.817 44.2433 104.643 44.2759 105.733 44.9796C109.145 47.1788 112.601 47.0322 116.094 45.1458C116.492 44.9308 116.985 44.8037 117.436 44.7939C121.353 44.7125 125.27 44.6506 129.187 44.6343C129.676 44.6343 130.241 44.82 130.652 45.0969C133.143 46.7976 135.901 47.1657 138.806 46.8041C140.97 46.5337 143.082 46.0385 145.064 45.0871C145.318 44.9666 145.629 44.9145 145.916 44.9112C147.257 44.8949 148.602 44.934 149.944 44.9047C150.453 44.8917 150.672 45.0871 150.907 45.5237C151.344 46.3415 151.902 47.0908 152.49 47.9868Z" fill="white"/>
@@ -49,51 +120,133 @@ export default function Header() {
                   <rect width="215" height="48" fill="white"/>
                 </clipPath>
               </defs>
-            </svg>
-          </div>
-
-          {/* Center - Navigation Menu */}
-          <div className="hidden lg:flex items-center justify-center flex-1 max-w-2xl mx-8">
-            <div className="flex items-center px-6 py-2">
-              <Link href="/" className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4">الرئيسية</Link>
-              <Link href="/about" className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4">عن ميموز</Link>
-              <Link href="/contact" className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4">تواصل معنا</Link>
-              <a href="#" className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4">وظائف ميموز</a>
+                </svg>
+              </Link>
             </div>
-          </div>
 
-          {/* Left side - Cart & Order Now Buttons */}
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Link href="/cart" className="bg-white h-10 px-3 rounded-md font-arabic font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-1 text-sm" style={{ color: '#00A4A6' }}>
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Center - Navigation Menu */}
+            <div className="hidden lg:flex items-center justify-center flex-1 max-w-2xl mx-8">
+              <div className="flex items-center px-4 py-2">
+                {navLinks.map(({ href, label }) => (
+                  href.startsWith('/') ? (
+                    <Link
+                      key={label}
+                      href={href}
+                      className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4"
+                    >
+                      {label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={label}
+                      href={href}
+                      className="text-white hover:text-teal-800 transition-colors font-arabic font-bold text-md mx-4"
+                    >
+                      {label}
+                    </a>
+                  )
+                ))}
+              </div>
+            </div>
+
+            {/* Left side - Cart & Order Now Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="relative">
+                <Link href="/cart" className="bg-white h-9 sm:h-10 px-2 sm:px-3 rounded-md font-arabic font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-1 text-xs sm:text-sm" style={{ color: '#00A4A6' }}>
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M25.6527 7.44024H25.1194L20.6127 2.93357C20.2527 2.57357 19.666 2.57357 19.2927 2.93357C18.9327 3.29357 18.9327 3.88024 19.2927 4.25357L22.4794 7.44024H9.51935L12.706 4.25357C13.066 3.89357 13.066 3.30691 12.706 2.93357C12.346 2.57357 11.7593 2.57357 11.386 2.93357L6.89268 7.44024H6.35935C5.15935 7.44024 2.66602 7.44024 2.66602 10.8536C2.66602 12.1469 2.93268 13.0002 3.49268 13.5602C3.81268 13.8936 4.19935 14.0669 4.61268 14.1602C4.99935 14.2536 5.41268 14.2669 5.81268 14.2669H26.186C26.5994 14.2669 26.986 14.2402 27.3594 14.1602C28.4794 13.8936 29.3327 13.0936 29.3327 10.8536C29.3327 7.44024 26.8394 7.44024 25.6527 7.44024Z" fill="#007B7D"/>
                     <path d="M25.4009 16H6.49419C5.66752 16 5.04086 16.7333 5.17419 17.5467L6.29419 24.4C6.66752 26.6933 7.66752 29.3333 12.1075 29.3333H19.5875C24.0809 29.3333 24.8809 27.08 25.3609 24.56L26.7075 17.5867C26.8675 16.76 26.2409 16 25.4009 16ZM16.0009 26C12.8809 26 10.3342 23.4533 10.3342 20.3333C10.3342 19.7867 10.7875 19.3333 11.3342 19.3333C11.8809 19.3333 12.3342 19.7867 12.3342 20.3333C12.3342 22.36 13.9742 24 16.0009 24C18.0275 24 19.6675 22.36 19.6675 20.3333C19.6675 19.7867 20.1209 19.3333 20.6675 19.3333C21.2142 19.3333 21.6675 19.7867 21.6675 20.3333C21.6675 23.4533 19.1209 26 16.0009 26Z" fill="#007B7D"/>
+                  </svg>
+                  <span className="hidden sm:inline">السلة</span>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={scrollToMenu}
+                className="text-white h-9 sm:h-10 px-3 sm:px-4 rounded-lg font-arabic font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 hover:bg-white/10"
+                style={{ backgroundColor: '#008B8D' }}
+              >
+                <span className="hidden sm:inline">اطلب دلوقتي</span>
+                <span className="sm:hidden">اطلب</span>
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.5 2.95752C6.99 2.95752 2.5 7.44752 2.5 12.9575C2.5 18.4675 6.99 22.9575 12.5 22.9575C18.01 22.9575 22.5 18.4675 22.5 12.9575C22.5 7.44752 18.01 2.95752 12.5 2.95752ZM16.56 12.2275L13.03 15.7575C12.88 15.9075 12.69 15.9775 12.5 15.9775C12.31 15.9775 12.12 15.9075 11.97 15.7575L8.44 12.2275C8.15 11.9375 8.15 11.4575 8.44 11.1675C8.73 10.8775 9.21 10.8775 9.5 11.1675L12.5 14.1675L15.5 11.1675C15.79 10.8775 16.27 10.8775 16.56 11.1675C16.85 11.4575 16.85 11.9275 16.56 12.2275Z" fill="white"/>
                 </svg>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile Menu Sidebar */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/60" onClick={closeMobileMenu} />
+          <aside className="absolute top-0 right-0 h-full w-72 bg-white text-right shadow-2xl p-6 flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-gray-800 font-arabic">القائمة</span>
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                aria-label="إغلاق القائمة"
+              >
+                ×
+              </button>
+            </div>
+
+            <nav className="flex flex-col gap-4">
+              {navLinks.map(({ href, label }) => (
+                href.startsWith('/') ? (
+                  <Link
+                    key={`mobile-${label}`}
+                    href={href}
+                    className="text-gray-800 font-arabic font-semibold text-lg hover:text-teal-600 transition-colors py-2"
+                    onClick={closeMobileMenu}
+                  >
+                    {label}
+                  </Link>
+                ) : (
+                  <a
+                    key={`mobile-${label}`}
+                    href={href}
+                    className="text-gray-800 font-arabic font-semibold text-lg hover:text-teal-600 transition-colors py-2"
+                    onClick={closeMobileMenu}
+                  >
+                    {label}
+                  </a>
+                )
+              ))}
+            </nav>
+
+            <div className="mt-auto space-y-3">
+              <Link
+                href="/cart"
+                className="w-full bg-teal-50 text-teal-700 py-3 rounded-lg font-arabic font-bold flex items-center justify-center gap-2"
+                onClick={closeMobileMenu}
+              >
                 السلة
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </Link>
+              <button
+                type="button"
+                onClick={scrollToMenu}
+                className="w-full bg-orange-500 text-white py-3 rounded-lg font-arabic font-bold flex items-center justify-center gap-2"
+              >
+                اطلب من القائمة
+              </button>
             </div>
-            <button className="text-white h-10 px-4 rounded-lg font-arabic font-medium transition-colors flex items-center justify-center gap-2 hover:bg-white/10" style={{ backgroundColor: '#008B8D' }}>
-              اطلب دلوقتي
-                <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12.5 2.95752C6.99 2.95752 2.5 7.44752 2.5 12.9575C2.5 18.4675 6.99 22.9575 12.5 22.9575C18.01 22.9575 22.5 18.4675 22.5 12.9575C22.5 7.44752 18.01 2.95752 12.5 2.95752ZM16.56 12.2275L13.03 15.7575C12.88 15.9075 12.69 15.9775 12.5 15.9775C12.31 15.9775 12.12 15.9075 11.97 15.7575L8.44 12.2275C8.15 11.9375 8.15 11.4575 8.44 11.1675C8.73 10.8775 9.21 10.8775 9.5 11.1675L12.5 14.1675L15.5 11.1675C15.79 10.8775 16.27 10.8775 16.56 11.1675C16.85 11.4575 16.85 11.9275 16.56 12.2275Z" fill="white"/>
-                </svg>
-            </button>
-          </div>
-
-          {/* Mobile menu button */}
-          <button className="lg:hidden text-white mr-4">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          </aside>
         </div>
-      </nav>
-    </header>
+      )}
+    </>
   )
 }

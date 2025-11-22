@@ -361,22 +361,22 @@ export default function CartPage() {
                     
                     <div className="space-y-4">
                       {cartItems.map((item) => (
-                        <div key={item.productKey || item.id} className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg">
+                        <div key={item.productKey || item.id} className="flex flex-col sm:flex-row items-start gap-4 p-4 border border-gray-200 rounded-lg">
                           <Image 
                             src={item.image} 
                             alt={item.name} 
                             width={80} 
                             height={80} 
-                            className="w-20 h-20 object-cover rounded-lg flex-shrink-0" 
+                            className="w-20 h-20 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0 mx-auto sm:mx-0" 
                           />
                           
-                          <div className="flex-grow">
-                            <h3 className="font-arabic font-bold text-lg text-gray-800 mb-1">{item.name}</h3>
-                            <p className="font-arabic text-gray-600 mb-2">{item.description}</p>
+                          <div className="flex-grow w-full sm:w-auto">
+                            <h3 className="font-arabic font-bold text-lg sm:text-lg text-gray-800 mb-2 text-center sm:text-right">{item.name}</h3>
+                            <p className="font-arabic text-sm sm:text-base text-gray-600 mb-3 text-center sm:text-right">{item.description}</p>
                             
                             {/* Show customization details */}
                             {item.customization && (
-                              <div className="bg-gray-50 p-3 rounded-md mb-2 text-sm">
+                              <div className="bg-gray-50 p-3 rounded-md mb-3 text-sm">
                                 {/* Regular product customizations */}
                                 {item.customization.variants && item.customization.variants.length > 0 && (
                                   <div className="mb-2">
@@ -428,25 +428,25 @@ export default function CartPage() {
                               </div>
                             )}
                             
-                            <div className="font-arabic text-lg font-bold text-teal-600">
+                            <div className="font-arabic text-lg font-bold text-teal-600 text-center sm:text-right mb-3 sm:mb-0">
                               EGP {item.price}
                             </div>
                           </div>
                           
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="flex items-center gap-2">
+                          <div className="flex justify-center sm:justify-start w-full sm:w-auto">
+                            <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-2">
                               <button 
                                 onClick={() => updateQuantity(item.productKey || item.id, item.quantity - 1)}
-                                className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 font-bold"
+                                className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 font-bold text-lg"
                               >
                                 -
                               </button>
-                              <div className="w-10 h-8 bg-teal-500 text-white rounded flex items-center justify-center font-arabic font-bold">
+                              <div className="w-12 h-10 bg-teal-500 text-white rounded-lg flex items-center justify-center font-arabic font-bold text-lg">
                                 {item.quantity}
                               </div>
                               <button 
                                 onClick={() => updateQuantity(item.productKey || item.id, item.quantity + 1)}
-                                className="w-8 h-8 rounded-full bg-teal-500 hover:bg-teal-600 text-white flex items-center justify-center font-bold"
+                                className="w-10 h-10 rounded-full bg-teal-500 hover:bg-teal-600 text-white flex items-center justify-center font-bold text-lg"
                               >
                                 +
                               </button>
