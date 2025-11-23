@@ -21,7 +21,8 @@ export default function CartPage() {
     deliveryMethod: 'delivery', // 'delivery' or 'pickup'
     selectedBranch: '',
     paymentMethod: 'cash',
-    notes: ''
+    notes: '',
+    email: ''
   })
 
   // Save order data to localStorage whenever it changes
@@ -113,7 +114,8 @@ export default function CartPage() {
       deliveryMethod: 'delivery',
       selectedBranch: '',
       paymentMethod: 'cash',
-      notes: ''
+      notes: '',
+      email: ''
     })
     setCurrentStep(1)
     setCartItems([])
@@ -124,7 +126,77 @@ export default function CartPage() {
   const handleOrderSubmit = async () => {
     try {
       setIsSubmitting(true)
-      // Prepare the order payload
+      
+      // Check if payment method is card - handle Paymob integration
+      if (orderData.paymentMethod === 'card') {
+        await handleCardPayment()
+        return
+      }
+
+      // For cash payments, proceed with regular order submission
+      await handleCashPayment()
+
+    } catch (error) {
+      console.error('Error submitting order:', error)
+      alert('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleCardPayment = async () => {
+    try {
+      // First, create the payment session with Paymob
+      const paymobResponse = await fetch('/api/payments/paymob', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderData,
+          cartItems: cartItems.map(item => ({
+            id: item.id,
+            productId: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            description: item.description || '',
+            notes: item.notes || '',
+            customization: item.customization || null
+          })),
+          totalAmount: getFinalTotal(),
+          customerName: orderData.customerName,
+          phone: orderData.phone,
+          email: orderData.email || `${orderData.phone}@memo.com`
+        })
+      })
+
+      const paymobResult = await paymobResponse.json()
+
+      if (paymobResult.success) {
+        // Store order data in localStorage for post-payment processing
+        localStorage.setItem('pendingOrder', JSON.stringify({
+          orderData,
+          cartItems,
+          paymobOrderId: paymobResult.paymobOrderId,
+          totalAmount: getFinalTotal()
+        }))
+
+        // Redirect to Paymob payment page
+        window.location.href = paymobResult.paymentUrl
+      } else {
+        throw new Error(paymobResult.error || 'فشل في إنشاء جلسة الدفع')
+      }
+
+    } catch (error) {
+      console.error('Card payment error:', error)
+      alert(`خطأ في معالجة الدفع: ${error.message}`)
+    }
+  }
+
+  const handleCashPayment = async () => {
+    try {
+      // Prepare the order payload for cash payment
       const orderPayload = {
         customerName: orderData.customerName,
         phone: orderData.phone,
@@ -148,12 +220,6 @@ export default function CartPage() {
         notes: orderData.notes || ''
       }
 
-      console.log('Submitting order:', orderPayload)
-      console.log('Cart items with customization:', cartItems.map(item => ({
-        name: item.name,
-        customization: item.customization
-      })))
-
       // Submit order to API
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -171,19 +237,14 @@ export default function CartPage() {
         
         // Clear all data after successful order
         clearOrderData()
-        
-        // Optionally redirect to success page or order details
-        // window.location.href = `/order-success?orderNumber=${result.order.orderNumber}`
       } else {
         // Error - show error message
         alert(`خطأ في إرسال الطلب: ${result.error || 'حدث خطأ غير متوقع'}`)
       }
 
     } catch (error) {
-      console.error('Error submitting order:', error)
-      alert('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى')
-    } finally {
-      setIsSubmitting(false)
+      console.error('Cash payment error:', error)
+      throw error
     }
   }
 
@@ -720,6 +781,17 @@ export default function CartPage() {
                     {/* Card Payment Tab */}
                     {orderData.paymentMethod === 'card' && (
                       <div className="space-y-6">
+                        {/* Payment Gateway Info */}
+                        <div className="text-center py-8">
+                          <div className="text-6xl mb-4">💳</div>
+                          <h3 className="text-2xl font-bold text-gray-800 font-arabic mb-3">
+                            الدفع بالبطاقة البنكية
+                          </h3>
+                          <p className="text-gray-600 font-arabic text-lg">
+                            ستتم إعادة توجيهك لصفحة الدفع الآمنة
+                          </p>
+                        </div>
+
                         {/* Security Message */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                           <div className="flex items-center gap-2 mb-2">
@@ -727,71 +799,42 @@ export default function CartPage() {
                             <span className="font-arabic font-semibold text-blue-700">الدفع آمن ومحمي</span>
                           </div>
                           <p className="text-sm text-blue-600 font-arabic">
-                            كل المعاملات مؤمنة عبر تقنية التشفير SSL وبنوك معتمدة
+                            نستخدم بوابة Paymob الآمنة للدفع - جميع المعاملات مؤمنة عبر تقنية التشفير SSL
                           </p>
                         </div>
 
-                        {/* Card Details Form */}
-                        <div className="space-y-4">
-                          {/* Card Number */}
-                          <div>
-                            <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              رقم البطاقة
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="text"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono text-lg"
-                                placeholder="1234 5678 9012 3456"
-                                maxLength="19"
-                              />
-                              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                                <span className="text-blue-600 font-bold text-sm">VISA</span>
-                                <span className="text-red-600 font-bold text-sm">●●</span>
-                              </div>
+                        {/* Supported Cards */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h4 className="font-arabic font-semibold text-gray-700 mb-3 text-center">البطاقات المقبولة:</h4>
+                          <div className="flex items-center justify-center gap-4 flex-wrap">
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                              <span className="text-blue-600 font-bold text-lg">VISA</span>
                             </div>
-                            <p className="text-xs text-gray-500 font-arabic mt-1">
-                              أدخل الـ 16 رقم الموجودين على البطاقة البنكية
-                            </p>
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                              <span className="text-red-600 font-bold text-lg">●● MasterCard</span>
+                            </div>
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                              <span className="text-green-600 font-bold text-sm">Meeza</span>
+                            </div>
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                              <span className="text-purple-600 font-bold text-sm">CIB</span>
+                            </div>
                           </div>
+                        </div>
 
-                          {/* Expiry and CVV */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                                تاريخ الانتهاء
-                              </label>
-                              <input
-                                type="text"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono"
-                                placeholder="MM/YY"
-                                maxLength="5"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                                CVV
-                              </label>
-                              <input
-                                type="password"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono"
-                                placeholder="123"
-                                maxLength="4"
-                              />
-                            </div>
+                        {/* Payment Process Steps */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-yellow-600">ℹ️</span>
+                            <span className="font-arabic font-semibold text-yellow-700">خطوات الدفع</span>
                           </div>
-
-                          {/* Cardholder Name */}
-                          <div>
-                            <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              اسم حامل البطاقة
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                              placeholder="الاسم كما هو مكتوب على البطاقة"
-                            />
-                          </div>
+                          <ol className="text-sm text-yellow-600 font-arabic space-y-1">
+                            <li>1. اضغط على "ادفع واتمم الطلب"</li>
+                            <li>2. ستتم إعادة توجيهك لصفحة الدفع الآمنة</li>
+                            <li>3. أدخل بيانات البطاقة البنكية</li>
+                            <li>4. أكمل عملية الدفع والتحقق</li>
+                            <li>5. سيتم توجيهك لصفحة تأكيد الطلب</li>
+                          </ol>
                         </div>
 
                         {/* SSL Security Info */}
@@ -799,19 +842,26 @@ export default function CartPage() {
                           <div className="flex items-center gap-2 text-green-600">
                             <span>🔐</span>
                             <span className="font-arabic text-sm">
-                              الدفع الإلكتروني آمن ومحمي عبر شهادات SSL المعتمدة من البنوك
+                              الدفع معالج عبر Paymob - بوابة دفع معتمدة من البنك المركزي المصري
                             </span>
                           </div>
                         </div>
 
-                        {/* Terms Checkbox */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <input type="checkbox" className="mt-1" />
-                            <p className="text-sm text-blue-600 font-arabic">
-                              أوافق على شروط وأحكام الدفع وسياسة الخصوصية للمتجر
-                            </p>
-                          </div>
+                        {/* Email Field for Payment */}
+                        <div>
+                          <label className="block font-arabic font-semibold text-gray-700 mb-2">
+                            البريد الإلكتروني (اختياري)
+                          </label>
+                          <input
+                            type="email"
+                            value={orderData.email || ''}
+                            onChange={(e) => setOrderData({...orderData, email: e.target.value})}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic"
+                            placeholder="your@email.com"
+                          />
+                          <p className="text-sm text-gray-500 font-arabic mt-1">
+                            سيتم استخدام البريد الإلكتروني لإرسال إيصال الدفع (اختياري)
+                          </p>
                         </div>
                       </div>
                     )}
