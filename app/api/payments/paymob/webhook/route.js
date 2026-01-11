@@ -72,31 +72,54 @@ async function handleTransactionWebhook(paymentData) {
   })
 
   if (success && !pending) {
-    // Payment successful - update order status in database
+    // Payment successful - create order in database
     try {
-      // Here you would typically:
-      // 1. Find the order by Paymob order ID
-      // 2. Update the order status to 'paid' or 'confirmed'
-      // 3. Send confirmation email/SMS to customer
-      // 4. Update inventory if needed
-
       console.log(`Payment confirmed for order ${order?.id}`)
       
-      // Example: Update order in database
-      // await updateOrderPaymentStatus(order?.merchant_order_id, 'paid')
+      // Create the order in our system
+      const orderResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerName: paymentData.billing_data?.first_name + ' ' + paymentData.billing_data?.last_name || 'Customer',
+          phone: paymentData.billing_data?.phone_number || 'N/A',
+          address: paymentData.billing_data?.street || 'N/A',
+          floor: paymentData.billing_data?.floor || '',
+          apartment: paymentData.billing_data?.apartment || '',
+          landmark: '',
+          deliveryMethod: 'delivery',
+          selectedBranch: '',
+          paymentMethod: 'card',
+          paymentStatus: 'paid',
+          paymobOrderId: order?.id,
+          items: [], // Items not available in webhook
+          totalAmount: amount_cents / 100,
+          notes: `Order created via Paymob webhook - Order ID: ${order?.id}`,
+          webhookCreated: true
+        })
+      })
+
+      if (orderResponse.ok) {
+        const orderResult = await orderResponse.json()
+        console.log('Order created successfully via webhook:', orderResult.order?._id)
+      } else {
+        console.error('Failed to create order via webhook:', await orderResponse.text())
+      }
       
     } catch (error) {
-      console.error('Failed to update order after successful payment:', error)
+      console.error('Failed to create order after successful payment:', error)
     }
   } else if (!success) {
-    // Payment failed - handle accordingly
+    // Payment failed - log the failure
     console.log(`Payment failed for order ${order?.id}:`, txn_response_code)
     
     try {
-      // Update order status to 'payment_failed'
-      // await updateOrderPaymentStatus(order?.merchant_order_id, 'payment_failed')
+      // Could implement failed payment tracking here if needed
+      console.log('Payment failure recorded')
     } catch (error) {
-      console.error('Failed to update order after failed payment:', error)
+      console.error('Failed to handle payment failure:', error)
     }
   }
 }

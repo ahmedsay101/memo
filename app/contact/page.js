@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Header from '../../components/Header'
+import Footer from '../../components/Footer'
 import LoadingModal from '../../components/LoadingModal'
 import SuccessModal from '../../components/SuccessModal'
 import ErrorModal from '../../components/ErrorModal'
@@ -114,12 +115,6 @@ export default function ContactPage() {
       <div className="pt-20">
         {/* Contact Section */}
         <div className="relative" style={{ backgroundColor: '#00A4A6' }}>
-        {/* Background decoration */}
-        <div className="absolute bottom-0 left-0 w-full h-16">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-full">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="#f9fafb"></path>
-          </svg>
-        </div>
 
         <div className="relative z-10 container mx-auto px-6 py-16" dir="rtl">
           {/* Contact Header */}
@@ -330,6 +325,9 @@ export default function ContactPage() {
 
         {/* Locations Section */}
         <ContactLocationsSection />
+        
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   )

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 
-// Paymob configuration - Add these to your environment variables
-const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY
+// Paymob configuration
+const PAYMOB_SECRET_KEY = process.env.PAYMOB_SECRET_KEY || process.env.PAYMOB_API_KEY
+const PAYMOB_PUBLIC_KEY = process.env.PAYMOB_PUBLIC_KEY
 const PAYMOB_INTEGRATION_ID = process.env.PAYMOB_INTEGRATION_ID
-const PAYMOB_HMAC_SECRET = process.env.PAYMOB_HMAC_SECRET
-const PAYMOB_BASE_URL = 'https://accept.paymob.com/api'
 
 export async function POST(request) {
   try {
@@ -18,98 +17,83 @@ export async function POST(request) {
       email 
     } = body
 
-    // Step 1: Authentication Request
-    const authResponse = await fetch(`${PAYMOB_BASE_URL}/auth/tokens`, {
+    // Use the new Intention API
+    const intentionResponse = await fetch('https://accept.paymob.com/v1/intention/', {
       method: 'POST',
       headers: {
+        'Authorization': `Token ${PAYMOB_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        api_key: PAYMOB_API_KEY
-      })
-    })
-
-    const authData = await authResponse.json()
-    
-    if (!authData.token) {
-      throw new Error('Failed to authenticate with Paymob')
-    }
-
-    const authToken = authData.token
-
-    // Step 2: Create Order at Paymob
-    const orderResponse = await fetch(`${PAYMOB_BASE_URL}/ecommerce/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        auth_token: authToken,
-        delivery_needed: orderData.deliveryMethod === 'delivery' ? 'true' : 'false',
-        amount_cents: Math.round(totalAmount * 100), // Convert to cents
+        amount: Math.round(totalAmount * 100), // Amount in cents
         currency: 'EGP',
-        items: cartItems.map(item => ({
-          name: item.name,
-          amount_cents: Math.round(item.price * 100),
-          description: item.description || '',
-          quantity: item.quantity
-        }))
-      })
-    })
-
-    const orderData_paymob = await orderResponse.json()
-    
-    if (!orderData_paymob.id) {
-      throw new Error('Failed to create order at Paymob')
-    }
-
-    // Step 3: Generate Payment Key
-    const paymentKeyResponse = await fetch(`${PAYMOB_BASE_URL}/acceptance/payment_keys`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        auth_token: authToken,
-        amount_cents: Math.round(totalAmount * 100),
-        expiration: 3600, // 1 hour expiration
-        order_id: orderData_paymob.id,
+        payment_methods: [parseInt(PAYMOB_INTEGRATION_ID)],
+        items: [
+          // Cart items
+          ...cartItems.map(item => ({
+            name: item.name,
+            amount: Math.round(item.price * 100), // Unit price in cents
+            description: item.description || item.name,
+            quantity: item.quantity
+          })),
+          // Delivery fee as separate item
+          ...(orderData.deliveryMethod === 'delivery' ? [{
+            name: 'رسوم التوصيل',
+            amount: Math.round((totalAmount - cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)) * 100), // Delivery fee in cents
+            description: 'رسوم توصيل الطلب',
+            quantity: 1
+          }] : [])
+        ],
         billing_data: {
           apartment: orderData.apartment || 'NA',
-          email: email || `${phone}@memo.com`, // Paymob requires email
-          floor: orderData.floor || 'NA',
           first_name: customerName.split(' ')[0] || customerName,
           last_name: customerName.split(' ').slice(1).join(' ') || 'Customer',
-          phone_number: phone,
-          postal_code: 'NA',
-          state: 'Cairo',
           street: orderData.address || 'NA',
+          building: 'NA',
+          phone_number: phone,
           city: 'Cairo',
           country: 'EG',
-          building: 'NA'
+          email: email || `${phone}@memo.com`,
+          floor: orderData.floor || 'NA',
+          state: 'Cairo'
         },
-        currency: 'EGP',
-        integration_id: PAYMOB_INTEGRATION_ID
+        customer: {
+          first_name: customerName.split(' ')[0] || customerName,
+          last_name: customerName.split(' ').slice(1).join(' ') || 'Customer',
+          email: email || `${phone}@memo.com`
+        },
+        expiration: 3600, // 1 hour
+        special_reference: `MEMO-${Date.now()}`,
+        notification_url: process.env.PAYMOB_WEBHOOK_URL,
+        redirection_url: process.env.PAYMOB_CALLBACK_URL
       })
     })
 
-    const paymentKeyData = await paymentKeyResponse.json()
+    const intentionData = await intentionResponse.json()
     
-    if (!paymentKeyData.token) {
-      throw new Error('Failed to generate payment key')
+    if (!intentionResponse.ok) {
+      console.error('Paymob API error response:', intentionData)
+      throw new Error(`Paymob API error: ${intentionData.detail || JSON.stringify(intentionData)}`)
+    }
+    
+    if (!intentionData.client_secret) {
+      console.error('Missing client_secret in response:', intentionData)
+      throw new Error('Failed to create payment intention - missing client_secret')
     }
 
-    // Return the payment URL and data
+    // Return the unified checkout URL
+    const checkoutUrl = `https://accept.paymob.com/unifiedcheckout/?publicKey=${PAYMOB_PUBLIC_KEY}&clientSecret=${intentionData.client_secret}`
+
     return NextResponse.json({
       success: true,
-      paymentToken: paymentKeyData.token,
-      paymentUrl: `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_INTEGRATION_ID}?payment_token=${paymentKeyData.token}`,
-      paymobOrderId: orderData_paymob.id,
+      paymentUrl: checkoutUrl,
+      paymobOrderId: intentionData.intention_order_id,
+      intentionId: intentionData.id,
       message: 'Payment URL generated successfully'
     })
 
   } catch (error) {
-    console.error('Paymob integration error:', error)
+    console.error('Paymob intention error:', error)
     return NextResponse.json({
       success: false,
       error: error.message || 'Failed to process payment'

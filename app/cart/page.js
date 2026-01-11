@@ -11,6 +11,9 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  const [showModal, setShowModal] = useState(false)
+  const [modalContent, setModalContent] = useState({ title: '', message: '', type: 'error' })
+  const [validationErrors, setValidationErrors] = useState({})
   const [orderData, setOrderData] = useState({
     customerName: '',
     phone: '',
@@ -99,6 +102,65 @@ export default function CartPage() {
     return getTotalPrice() + getDeliveryFee()
   }
 
+  // Validation functions
+  const validateStep2 = () => {
+    const errors = {}
+    
+    if (!orderData.customerName.trim()) {
+      errors.customerName = 'الاسم مطلوب'
+    }
+    
+    if (!orderData.phone.trim()) {
+      errors.phone = 'رقم الهاتف مطلوب'
+    } else if (!/^(\+?20)?[0-9]{11}$/.test(orderData.phone.replace(/\s/g, ''))) {
+      errors.phone = 'رقم الهاتف غير صحيح'
+    }
+    
+    if (orderData.deliveryMethod === 'delivery') {
+      if (!orderData.address.trim()) {
+        errors.address = 'العنوان مطلوب للتوصيل'
+      }
+    }
+    
+    if (orderData.deliveryMethod === 'pickup') {
+      if (!orderData.selectedBranch.trim()) {
+        errors.selectedBranch = 'يرجى اختيار فرع للاستلام'
+      }
+    }
+
+    if (!orderData.email.trim()) {
+      errors.email = 'البريد الإلكتروني مطلوب'
+    } else if (!/\S+@\S+\.\S+/.test(orderData.email)) {
+      errors.email = 'البريد الإلكتروني غير صحيح'
+    }
+    
+    return errors
+  }
+
+  const showModalMessage = (title, message, type = 'error') => {
+    setModalContent({ title, message, type })
+    setShowModal(true)
+  }
+
+  const handleStepTransition = (targetStep) => {
+    if (targetStep === 3 && currentStep === 2) {
+      const errors = validateStep2()
+      setValidationErrors(errors)
+      
+      if (Object.keys(errors).length > 0) {
+        showModalMessage(
+          'معلومات مطلوبة',
+          'يرجى ملء جميع الحقول المطلوبة بشكل صحيح',
+          'error'
+        )
+        return
+      }
+    }
+    
+    setValidationErrors({})
+    setCurrentStep(targetStep)
+  }
+
   const clearOrderData = () => {
     // Clear all saved order data when order is completed
     localStorage.removeItem('memoOrderData')
@@ -138,7 +200,7 @@ export default function CartPage() {
 
     } catch (error) {
       console.error('Error submitting order:', error)
-      alert('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى')
+      showModalMessage('خطأ في الاتصال', 'حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى', 'error')
     } finally {
       setIsSubmitting(false)
     }
@@ -182,15 +244,28 @@ export default function CartPage() {
           totalAmount: getFinalTotal()
         }))
 
-        // Redirect to Paymob payment page
+      if (paymobResult.success) {
+        // Store order data in localStorage for post-payment processing
+        localStorage.setItem('pendingOrder', JSON.stringify({
+          orderData,
+          cartItems,
+          paymobOrderId: paymobResult.paymobOrderId,
+          totalAmount: getFinalTotal(),
+          intentionId: paymobResult.intentionId
+        }))
+
+        // Direct redirect to Paymob unified checkout
         window.location.href = paymobResult.paymentUrl
+      } else {
+        throw new Error(paymobResult.error || 'فشل في إنشاء جلسة الدفع')
+      }
       } else {
         throw new Error(paymobResult.error || 'فشل في إنشاء جلسة الدفع')
       }
 
     } catch (error) {
       console.error('Card payment error:', error)
-      alert(`خطأ في معالجة الدفع: ${error.message}`)
+      showModalMessage('خطأ في الدفع', `خطأ في معالجة الدفع: ${error.message}`, 'error')
     }
   }
 
@@ -233,13 +308,13 @@ export default function CartPage() {
 
       if (response.ok) {
         // Success - show success message with order number
-        alert(`تم إرسال طلبك بنجاح!\nرقم الطلب: ${result.order.orderNumber}\nسيتم التواصل معك قريباً`)
+        showModalMessage('تم الطلب بنجاح', `تم إرسال طلبك بنجاح!\nرقم الطلب: ${result.order.orderNumber}\nسيتم التواصل معك قريباً`, 'success')
         
         // Clear all data after successful order
         clearOrderData()
       } else {
         // Error - show error message
-        alert(`خطأ في إرسال الطلب: ${result.error || 'حدث خطأ غير متوقع'}`)
+        showModalMessage('خطأ في الطلب', `خطأ في إرسال الطلب: ${result.error || 'حدث خطأ غير متوقع'}`, 'error')
       }
 
     } catch (error) {
@@ -519,7 +594,7 @@ export default function CartPage() {
                     
                     <div className="mt-6 text-left">
                       <button 
-                        onClick={() => setCurrentStep(2)}
+                        onClick={() => handleStepTransition(2)}
                         className="bg-teal-500 hover:bg-teal-600 text-white font-arabic font-bold px-8 py-3 rounded-lg transition-colors"
                       >
                         التالي: اختيار طريقة الاستلام
@@ -564,29 +639,39 @@ export default function CartPage() {
                           {/* Customer Name */}
                           <div>
                             <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              الاسم
+                              الاسم *
                             </label>
                             <input
                               type="text"
                               value={orderData.customerName}
                               onChange={(e) => setOrderData({...orderData, customerName: e.target.value})}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic"
+                              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic ${
+                                validationErrors.customerName ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                              }`}
                               placeholder="اسم المستلم"
                             />
+                            {validationErrors.customerName && (
+                              <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.customerName}</p>
+                            )}
                           </div>
 
                           {/* Phone Number */}
                           <div>
                             <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              📱 رقم الهاتف
+                              📱 رقم الهاتف *
                             </label>
                             <input
                               type="tel"
                               value={orderData.phone}
                               onChange={(e) => setOrderData({...orderData, phone: e.target.value})}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic"
-                              placeholder="رقمك على WhatsApp"
+                              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic ${
+                                validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                              }`}
+                              placeholder="01xxxxxxxxx"
                             />
+                            {validationErrors.phone && (
+                              <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.phone}</p>
+                            )}
                             <p className="text-sm text-gray-500 font-arabic mt-1">
                               هذا الرقم سيتم استخدامه للتواصل معاك وتوصيلك الطلب أول بأول
                             </p>
@@ -595,7 +680,7 @@ export default function CartPage() {
                           {/* Address Section */}
                           <div>
                             <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              📍 العنوان
+                              📍 العنوان *
                             </label>
                             
                             {/* Main Address */}
@@ -604,9 +689,14 @@ export default function CartPage() {
                                 type="text"
                                 value={orderData.address}
                                 onChange={(e) => setOrderData({...orderData, address: e.target.value})}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic"
+                                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic ${
+                                  validationErrors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                }`}
                                 placeholder="الشارع والمنطقة"
                               />
+                              {validationErrors.address && (
+                                <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.address}</p>
+                              )}
                             </div>
 
                             {/* Floor and Apartment */}
@@ -671,12 +761,14 @@ export default function CartPage() {
                           {/* Branch Selection */}
                           <div>
                             <label className="block font-arabic font-semibold text-gray-700 mb-2">
-                              📍 اختيار الفرع
+                              📍 اختيار الفرع *
                             </label>
                             <select
                               value={orderData.selectedBranch}
                               onChange={(e) => setOrderData({...orderData, selectedBranch: e.target.value})}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic"
+                              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic ${
+                                validationErrors.selectedBranch ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                              }`}
                             >
                               <option value="">اختر الفرع الأقرب ليك</option>
                               <option value="maadi">فرع المعادي - شارع 9</option>
@@ -684,6 +776,9 @@ export default function CartPage() {
                               <option value="heliopolis">فرع مصر الجديدة - الكوربة</option>
                               <option value="zamalek">فرع الزمالك - شارع 26 يوليو</option>
                             </select>
+                            {validationErrors.selectedBranch && (
+                              <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.selectedBranch}</p>
+                            )}
                           </div>
 
                           {/* Contact Info */}
@@ -739,9 +834,8 @@ export default function CartPage() {
                         العودة للسلة
                       </button>
                       <button 
-                        onClick={() => setCurrentStep(3)}
+                        onClick={() => handleStepTransition(3)}
                         className="bg-teal-500 hover:bg-teal-600 text-white font-arabic font-bold px-8 py-3 rounded-lg transition-colors"
-                        disabled={!orderData.customerName || !orderData.phone || (orderData.deliveryMethod === 'delivery' && !orderData.address) || (orderData.deliveryMethod === 'pickup' && !orderData.selectedBranch)}
                       >
                         التالي: إتمام الطلب
                       </button>
@@ -829,7 +923,7 @@ export default function CartPage() {
                             <span className="font-arabic font-semibold text-yellow-700">خطوات الدفع</span>
                           </div>
                           <ol className="text-sm text-yellow-600 font-arabic space-y-1">
-                            <li>1. اضغط على "ادفع واتمم الطلب"</li>
+                            <li>1. اضغط على ادفع واتمم الطلب&quot;</li>
                             <li>2. ستتم إعادة توجيهك لصفحة الدفع الآمنة</li>
                             <li>3. أدخل بيانات البطاقة البنكية</li>
                             <li>4. أكمل عملية الدفع والتحقق</li>
@@ -1047,6 +1141,32 @@ export default function CartPage() {
       
         <Footer />
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold text-gray-800 font-arabic mb-4 text-center">
+              {modalContent.title}
+            </h3>
+            <p className="text-gray-600 font-arabic text-center mb-6">
+              {modalContent.message}
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowModal(false)}
+                className={`px-6 py-2 rounded-lg font-arabic font-semibold text-white transition-colors ${
+                  modalContent.type === 'success' 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
+                حسناً
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
