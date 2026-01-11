@@ -128,9 +128,8 @@ export default function CartPage() {
       }
     }
 
-    if (!orderData.email.trim()) {
-      errors.email = 'البريد الإلكتروني مطلوب'
-    } else if (!/\S+@\S+\.\S+/.test(orderData.email)) {
+    // Email is optional, only validate format if provided
+    if (orderData.email && orderData.email.trim() && !/\S+@\S+\.\S+/.test(orderData.email)) {
       errors.email = 'البريد الإلكتروني غير صحيح'
     }
     
