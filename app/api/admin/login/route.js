@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-
-// Simple admin credentials (in production, use database)
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'memo2024',
-  id: '1',
-  role: 'admin'
-}
+import dbConnect from '../../../../lib/mongodb'
+import Admin from '../../../../models/Admin'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production'
 
 export async function POST(request) {
   try {
+    await dbConnect()
+    
     const { username, password } = await request.json()
 
     // Validate credentials
@@ -23,20 +19,35 @@ export async function POST(request) {
       )
     }
 
-    // Check credentials
-    if (username !== ADMIN_CREDENTIALS.username || password !== ADMIN_CREDENTIALS.password) {
+    // Find admin by username
+    const admin = await Admin.findOne({ username, active: true })
+    
+    if (!admin) {
       return NextResponse.json(
         { error: 'اسم المستخدم أو كلمة المرور غير صحيحة' },
         { status: 401 }
       )
     }
 
+    // Check password
+    const isPasswordValid = await admin.comparePassword(password)
+    
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: 'اسم المستخدم أو كلمة المرور غير صحيحة' },
+        { status: 401 }
+      )
+    }
+
+    // Update last login
+    await admin.updateLastLogin()
+
     // Generate JWT token
     const token = jwt.sign(
       { 
-        id: ADMIN_CREDENTIALS.id,
-        username: ADMIN_CREDENTIALS.username,
-        role: ADMIN_CREDENTIALS.role
+        id: admin._id,
+        username: admin.username,
+        role: admin.role
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -46,9 +57,10 @@ export async function POST(request) {
       success: true,
       token,
       user: {
-        id: ADMIN_CREDENTIALS.id,
-        username: ADMIN_CREDENTIALS.username,
-        role: ADMIN_CREDENTIALS.role
+        id: admin._id,
+        username: admin.username,
+        role: admin.role,
+        lastLogin: admin.lastLogin
       },
       message: 'تم تسجيل الدخول بنجاح'
     })

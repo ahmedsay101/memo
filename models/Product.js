@@ -11,9 +11,26 @@ const ProductSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  pricing: {
+    small: {
+      type: Number,
+      required: [true, 'سعر المقاس الصغير مطلوب'],
+      min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
+    },
+    medium: {
+      type: Number,
+      required: [true, 'سعر المقاس المتوسط مطلوب'],
+      min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
+    },
+    large: {
+      type: Number,
+      required: [true, 'سعر المقاس الكبير مطلوب'],
+      min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
+    }
+  },
+  // Keep old price field for backward compatibility, but make it optional
   price: {
     type: Number,
-    required: [true, 'سعر المنتج مطلوب'],
     min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
   },
   category: {

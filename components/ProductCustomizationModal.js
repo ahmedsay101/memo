@@ -54,12 +54,26 @@ export default function ProductCustomizationModal({
       // Set simple predefined variants based on product category
       if (product.categoryName === 'بيتزا' || product.category === 'pizza') {
         // Pizza products get size + crust options
-        setVariants({
-          size: [
+        const sizeVariants = []
+        
+        if (product.pricing) {
+          // Use new size-based pricing
+          sizeVariants.push(
+            { _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true },
+            { _id: 'medium', name: 'وسط', price: product.pricing.medium },
+            { _id: 'large', name: 'كبير', price: product.pricing.large }
+          )
+        } else {
+          // Fallback to old pricing system
+          sizeVariants.push(
             { _id: 'small', name: 'صغير', price: 0, isDefault: true },
             { _id: 'medium', name: 'وسط', price: 15 },
             { _id: 'large', name: 'كبير', price: 30 }
-          ],
+          )
+        }
+        
+        setVariants({
+          size: sizeVariants,
           crust: [
             { _id: 'regular', name: 'أطراف عادية', price: 0, isDefault: true },
             { _id: 'stuffed', name: 'أطراف محشية', price: 10 }
@@ -81,11 +95,24 @@ export default function ProductCustomizationModal({
         }
       } else {
         // Other products only get size options
-        setVariants({
-          size: [
+        const sizeVariants = []
+        
+        if (product.pricing) {
+          // Use new size-based pricing - for non-pizza items, use small and large
+          sizeVariants.push(
+            { _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true },
+            { _id: 'large', name: 'كبير', price: product.pricing.large }
+          )
+        } else {
+          // Fallback to old pricing system
+          sizeVariants.push(
             { _id: 'small', name: 'صغير', price: 0, isDefault: true },
             { _id: 'large', name: 'كبير', price: 20 }
-          ]
+          )
+        }
+        
+        setVariants({
+          size: sizeVariants
         })
         
         // Set default variants
@@ -153,13 +180,28 @@ export default function ProductCustomizationModal({
       })
     } else {
       // For regular products (pizza and non-pizza)
-      total = product.price
-      
-      // Add variant prices
-      Object.values(selectedVariants).forEach(variantId => {
-        const variant = Object.values(variants).flat().find(v => v._id === variantId)
-        if (variant) total += variant.price
-      })
+      if (product.pricing) {
+        // Use new pricing system - size determines the base price
+        const sizeVariant = Object.values(variants).flat().find(v => v._id === selectedVariants.size)
+        total = sizeVariant ? sizeVariant.price : product.pricing.small
+        
+        // Add other variant prices (like crust)
+        Object.entries(selectedVariants).forEach(([variantType, variantId]) => {
+          if (variantType !== 'size') { // Skip size as it's already the base price
+            const variant = Object.values(variants).flat().find(v => v._id === variantId)
+            if (variant) total += variant.price
+          }
+        })
+      } else {
+        // Fallback to old pricing system
+        total = product.price
+        
+        // Add variant prices
+        Object.values(selectedVariants).forEach(variantId => {
+          const variant = Object.values(variants).flat().find(v => v._id === variantId)
+          if (variant) total += variant.price
+        })
+      }
       
       // Add addon prices (only for pizza products)
       if (product.categoryName === 'بيتزا') {
@@ -336,7 +378,10 @@ export default function ProductCustomizationModal({
                 <span className="font-arabic font-medium">{variant.name}</span>
               </div>
               <span className="font-arabic text-orange-600 font-bold">
-                +EGP {variant.price}.00
+                {product.pricing ? 
+                  `${variant.price} جنيه` : 
+                  `+EGP ${variant.price}.00`
+                }
               </span>
             </label>
           ))}

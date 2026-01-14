@@ -67,10 +67,25 @@ export async function POST(request) {
     
     const data = await request.json()
     
-    // Validate required fields
-    if (!data.name || !data.price) {
+    // Validate required fields - check for pricing object or old price field
+    if (!data.name) {
       return NextResponse.json(
-        { error: 'اسم المنتج والسعر مطلوبان' },
+        { error: 'اسم المنتج مطلوب' },
+        { status: 400 }
+      )
+    }
+
+    // Validate pricing - either new pricing object or old price field
+    if (!data.pricing && !data.price) {
+      return NextResponse.json(
+        { error: 'أسعار المنتج مطلوبة' },
+        { status: 400 }
+      )
+    }
+
+    if (data.pricing && (!data.pricing.small || !data.pricing.medium || !data.pricing.large)) {
+      return NextResponse.json(
+        { error: 'جميع أسعار المقاسات مطلوبة (صغير، متوسط، كبير)' },
         { status: 400 }
       )
     }
@@ -79,7 +94,13 @@ export async function POST(request) {
     const product = new Product({
       name: data.name,
       description: data.description || '',
-      price: parseFloat(data.price),
+      pricing: data.pricing ? {
+        small: parseFloat(data.pricing.small),
+        medium: parseFloat(data.pricing.medium),
+        large: parseFloat(data.pricing.large)
+      } : undefined,
+      // Keep old price for backward compatibility
+      price: data.price ? parseFloat(data.price) : data.pricing.medium,
       category: data.category || 'pizza',
       subcategory: data.subcategory || 'أساسي',
       available: data.available ?? true,

@@ -91,26 +91,54 @@ export async function PUT(request, { params }) {
       )
     }
 
-    // Validate required fields
-    if (!data.name || !data.price) {
+    // Validate required fields - check for pricing object or old price field
+    if (!data.name) {
       return NextResponse.json(
-        { error: 'اسم المنتج والسعر مطلوبان' },
+        { error: 'اسم المنتج مطلوب' },
+        { status: 400 }
+      )
+    }
+
+    // Validate pricing - either new pricing object or old price field
+    if (!data.pricing && !data.price) {
+      return NextResponse.json(
+        { error: 'أسعار المنتج مطلوبة' },
+        { status: 400 }
+      )
+    }
+
+    if (data.pricing && (!data.pricing.small || !data.pricing.medium || !data.pricing.large)) {
+      return NextResponse.json(
+        { error: 'جميع أسعار المقاسات مطلوبة (صغير، متوسط، كبير)' },
         { status: 400 }
       )
     }
 
     // Update product
+    const updateData = {
+      name: data.name,
+      description: data.description || '',
+      category: data.category || 'pizza',
+      subcategory: data.subcategory || 'أساسي',
+      available: data.available ?? true,
+      image: data.image || ''
+    }
+
+    // Handle pricing - new structure takes priority
+    if (data.pricing) {
+      updateData.pricing = {
+        small: parseFloat(data.pricing.small),
+        medium: parseFloat(data.pricing.medium),
+        large: parseFloat(data.pricing.large)
+      }
+      updateData.price = parseFloat(data.pricing.medium) // Set medium as default price for compatibility
+    } else if (data.price) {
+      updateData.price = parseFloat(data.price)
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      {
-        name: data.name,
-        description: data.description || '',
-        price: parseFloat(data.price),
-        category: data.category || 'pizza',
-        subcategory: data.subcategory || 'أساسي',
-        available: data.available ?? true,
-        image: data.image || ''
-      },
+      updateData,
       { new: true, runValidators: true }
     ).lean()
 

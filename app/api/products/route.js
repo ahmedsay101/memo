@@ -32,6 +32,7 @@ export async function GET(request) {
       name: product.name,
       description: product.description,
       price: product.price,
+      pricing: product.pricing, // Include size-based pricing
       category: product.category,
       subcategory: product.subcategory,
       available: product.available,

@@ -310,7 +310,15 @@ export default function MenuSection() {
                           <div className="flex items-center justify-between">
                             <div className="text-right">
                               <span className="text-2xl font-bold text-gray-800 font-arabic">
-                                {product.price} جنيه
+                                {product.pricing ? (
+                                  // Show price range for products with size-based pricing
+                                  product.pricing.small === product.pricing.large ? 
+                                    `${product.pricing.small} جنيه` : 
+                                    `${product.pricing.small} - ${product.pricing.large} جنيه`
+                                ) : (
+                                  // Fallback to single price
+                                  `${product.price} جنيه`
+                                )}
                               </span>
                             </div>
                             <button 
@@ -459,7 +467,15 @@ export default function MenuSection() {
                         <div className="flex items-center justify-between">
                           <div className="text-right">
                             <span className="text-2xl font-bold text-gray-800 font-arabic">
-                              {product.price} جنيه
+                              {product.pricing ? (
+                                // Show price range for products with size-based pricing
+                                product.pricing.small === product.pricing.large ? 
+                                  `${product.pricing.small} جنيه` : 
+                                  `${product.pricing.small} - ${product.pricing.large} جنيه`
+                              ) : (
+                                // Fallback to single price
+                                `${product.price} جنيه`
+                              )}
                             </span>
                           </div>
                           <button 

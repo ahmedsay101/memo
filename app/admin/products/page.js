@@ -284,7 +284,17 @@ export default function ProductsPage() {
           <h3 className="text-xl font-semibold text-gray-800 mb-2">{product.name}</h3>
           <p className="text-gray-600 mb-3">{product.description}</p>
           <div className="flex items-center gap-4">
-            <span className="text-2xl font-bold text-teal-600">{product.price} جنيه</span>
+            <span className="text-2xl font-bold text-teal-600">
+              {product.pricing ? (
+                // Show price range for products with size-based pricing
+                product.pricing.small === product.pricing.large ? 
+                  `${product.pricing.small} جنيه` : 
+                  `${product.pricing.small} - ${product.pricing.large} جنيه`
+              ) : (
+                // Fallback to single price
+                `${product.price} جنيه`
+              )}
+            </span>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               product.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}>
@@ -779,7 +789,11 @@ function ProductModal({ product, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
-    price: product?.price || '',
+    pricing: {
+      small: product?.pricing?.small || product?.price || '',
+      medium: product?.pricing?.medium || product?.price || '',
+      large: product?.pricing?.large || product?.price || ''
+    },
     category: product?.category || '',
     subcategory: product?.subcategory || '',
     available: product?.available ?? true,
@@ -967,16 +981,55 @@ function ProductModal({ product, onClose, onSave }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              السعر (جنيه)
+              أسعار المقاسات (جنيه)
             </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              required
-            />
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">صغير</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.pricing.small}
+                  onChange={(e) => setFormData({
+                    ...formData, 
+                    pricing: {...formData.pricing, small: e.target.value}
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="السعر الصغير"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">متوسط</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.pricing.medium}
+                  onChange={(e) => setFormData({
+                    ...formData, 
+                    pricing: {...formData.pricing, medium: e.target.value}
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="السعر المتوسط"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">كبير</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.pricing.large}
+                  onChange={(e) => setFormData({
+                    ...formData, 
+                    pricing: {...formData.pricing, large: e.target.value}
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="السعر الكبير"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <div>
