@@ -67,7 +67,7 @@ export async function POST(request) {
     
     const data = await request.json()
     
-    // Validate required fields - check for pricing object or old price field
+    // Validate required fields
     if (!data.name) {
       return NextResponse.json(
         { error: 'اسم المنتج مطلوب' },
@@ -75,37 +75,78 @@ export async function POST(request) {
       )
     }
 
-    // Validate pricing - either new pricing object or old price field
-    if (!data.pricing && !data.price) {
+    // Validate sizes or pricing
+    if (!data.sizes && !data.pricing && !data.price) {
       return NextResponse.json(
         { error: 'أسعار المنتج مطلوبة' },
         { status: 400 }
       )
     }
 
-    if (data.pricing && (!data.pricing.small || !data.pricing.medium || !data.pricing.large)) {
+    if (data.sizes && data.sizes.length === 0) {
       return NextResponse.json(
-        { error: 'جميع أسعار المقاسات مطلوبة (صغير، متوسط، كبير)' },
+        { error: 'يجب إضافة مقاس واحد على الأقل' },
         { status: 400 }
       )
     }
 
-    // Create new product
-    const product = new Product({
+    // Validate sizes if provided
+    if (data.sizes) {
+      for (const size of data.sizes) {
+        if (!size.name || !size.price) {
+          return NextResponse.json(
+            { error: 'اسم المقاس والسعر مطلوبان لكل مقاس' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // Create product data object
+    const productData = {
       name: data.name,
       description: data.description || '',
-      pricing: data.pricing ? {
-        small: parseFloat(data.pricing.small),
-        medium: parseFloat(data.pricing.medium),
-        large: parseFloat(data.pricing.large)
-      } : undefined,
-      // Keep old price for backward compatibility
-      price: data.price ? parseFloat(data.price) : data.pricing.medium,
       category: data.category || 'pizza',
       subcategory: data.subcategory || 'أساسي',
       available: data.available ?? true,
       image: data.image || ''
-    })
+    }
+
+    // Handle pricing structure
+    if (data.sizes && data.sizes.length > 0) {
+      // Use new dynamic sizes structure
+      productData.sizes = data.sizes.map(size => ({
+        name: size.name,
+        price: parseFloat(size.price),
+        isDefault: !!size.isDefault
+      }))
+      // Set default price for backward compatibility
+      const defaultSize = data.sizes.find(s => s.isDefault) || data.sizes[0]
+      productData.price = parseFloat(defaultSize.price)
+    } else if (data.pricing) {
+      // Convert old pricing to new sizes structure for consistency
+      const sizes = []
+      if (data.pricing.small !== undefined) sizes.push({ name: 'صغير', price: parseFloat(data.pricing.small), isDefault: true })
+      if (data.pricing.medium !== undefined) sizes.push({ name: 'متوسط', price: parseFloat(data.pricing.medium), isDefault: false })
+      if (data.pricing.large !== undefined) sizes.push({ name: 'كبير', price: parseFloat(data.pricing.large), isDefault: false })
+      
+      if (sizes.length > 0) {
+        productData.sizes = sizes
+        productData.pricing = {
+          small: data.pricing.small ? parseFloat(data.pricing.small) : undefined,
+          medium: data.pricing.medium ? parseFloat(data.pricing.medium) : undefined,
+          large: data.pricing.large ? parseFloat(data.pricing.large) : undefined
+        }
+        productData.price = parseFloat(data.pricing.small || data.pricing.medium || data.pricing.large)
+      }
+    } else if (data.price) {
+      // Single price - create default size
+      productData.sizes = [{ name: 'عادي', price: parseFloat(data.price), isDefault: true }]
+      productData.price = parseFloat(data.price)
+    }
+
+    // Create new product
+    const product = new Product(productData)
 
     await product.save()
 

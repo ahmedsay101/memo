@@ -20,7 +20,7 @@ export default function ProductsPage() {
   const [addonFormData, setAddonFormData] = useState({
     name: '',
     category: 'topping',
-    price: 0,
+    sizes: [{ name: 'عادي', price: 0, isDefault: true }],
     image: '',
     imageFile: null,
     description: '',
@@ -181,10 +181,22 @@ export default function ProductsPage() {
 
   const handleEditAddon = (addon) => {
     setEditingAddon(addon)
+    
+    // Initialize sizes from existing data
+    let sizes = []
+    if (addon.sizes && addon.sizes.length > 0) {
+      sizes = addon.sizes
+    } else if (addon.price !== undefined) {
+      // Convert old single price to new format
+      sizes = [{ name: 'عادي', price: addon.price, isDefault: true }]
+    } else {
+      sizes = [{ name: 'عادي', price: 0, isDefault: true }]
+    }
+    
     setAddonFormData({
       name: addon.name,
       category: addon.category,
-      price: addon.price,
+      sizes: sizes,
       image: addon.image || '',
       imageFile: null,
       description: addon.description || '',
@@ -213,6 +225,44 @@ export default function ProductsPage() {
       console.error('Error deleting addon:', error)
       alert('حدث خطأ في الحذف')
     }
+  }
+
+  // Addon size management functions
+  const addAddonSize = () => {
+    setAddonFormData(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, { name: '', price: '', isDefault: false }]
+    }))
+  }
+
+  const removeAddonSize = (index) => {
+    if (addonFormData.sizes.length <= 1) {
+      alert('يجب أن يكون هناك مقاس واحد على الأقل')
+      return
+    }
+    
+    setAddonFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateAddonSize = (index, field, value) => {
+    setAddonFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.map((size, i) => 
+        i === index ? { ...size, [field]: value } : size
+      )
+    }))
+  }
+
+  const setDefaultAddonSize = (index) => {
+    setAddonFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.map((size, i) => 
+        ({ ...size, isDefault: i === index })
+      )
+    }))
   }
 
   // Fetch addons when switching to addons tab
@@ -285,11 +335,39 @@ export default function ProductsPage() {
           <p className="text-gray-600 mb-3">{product.description}</p>
           <div className="flex items-center gap-4">
             <span className="text-2xl font-bold text-teal-600">
-              {product.pricing ? (
-                // Show price range for products with size-based pricing
-                product.pricing.small === product.pricing.large ? 
-                  `${product.pricing.small} جنيه` : 
-                  `${product.pricing.small} - ${product.pricing.large} جنيه`
+              {product.sizes && product.sizes.length > 0 ? (
+                // Show individual prices for each size
+                <div className="space-y-1">
+                  {product.sizes.map((size, index) => (
+                    <div key={index} className="text-sm">
+                      <span className="font-medium">{size.name}:</span>
+                      <span className="mr-1">{size.price} جنيه</span>
+                      {size.isDefault && <span className="text-xs bg-green-100 text-green-600 px-1 rounded mr-1">افتراضي</span>}
+                    </div>
+                  ))}
+                </div>
+              ) : product.pricing ? (
+                // Show individual prices for old pricing structure
+                <div className="space-y-1">
+                  {product.pricing.small !== undefined && (
+                    <div className="text-sm">
+                      <span className="font-medium">صغير:</span>
+                      <span className="mr-1">{product.pricing.small} جنيه</span>
+                    </div>
+                  )}
+                  {product.pricing.medium !== undefined && (
+                    <div className="text-sm">
+                      <span className="font-medium">متوسط:</span>
+                      <span className="mr-1">{product.pricing.medium} جنيه</span>
+                    </div>
+                  )}
+                  {product.pricing.large !== undefined && (
+                    <div className="text-sm">
+                      <span className="font-medium">كبير:</span>
+                      <span className="mr-1">{product.pricing.large} جنيه</span>
+                    </div>
+                  )}
+                </div>
               ) : (
                 // Fallback to single price
                 `${product.price} جنيه`
@@ -641,8 +719,8 @@ export default function ProductsPage() {
 
         {/* Addon Form Modal */}
         {showAddAddonModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto py-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 my-auto max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">
                 {editingAddon ? 'تعديل الإضافة' : 'إضافة جديدة'}
               </h2>
@@ -679,18 +757,73 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    السعر (جنيه)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={addonFormData.price}
-                    onChange={(e) => setAddonFormData({...addonFormData, price: parseFloat(e.target.value)})}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
-                    required
-                  />
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      المقاسات والأسعار
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addAddonSize}
+                      className="bg-teal-500 hover:bg-teal-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1"
+                    >
+                      <span>+</span>
+                      إضافة مقاس
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {addonFormData.sizes.map((size, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={size.name}
+                            onChange={(e) => updateAddonSize(index, 'name', e.target.value)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            placeholder="اسم المقاس"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="flex-1">
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={size.price}
+                            onChange={(e) => updateAddonSize(index, 'price', e.target.value)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            placeholder="السعر"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setDefaultAddonSize(index)}
+                            className={`text-xs px-1 py-1 rounded ${
+                              size.isDefault 
+                                ? 'bg-green-500 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                            title={size.isDefault ? 'المقاس الافتراضي' : 'جعله افتراضي'}
+                          >
+                            {size.isDefault ? '✓' : 'افتراضي'}
+                          </button>
+                          
+                          {addonFormData.sizes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeAddonSize(index)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-1 py-1 rounded text-xs"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -786,14 +919,28 @@ export default function ProductsPage() {
 
 // Product Modal Component
 function ProductModal({ product, onClose, onSave }) {
+  // Initialize sizes from existing data or create default structure
+  const initializeSizes = () => {
+    if (product?.sizes && product.sizes.length > 0) {
+      // Use new dynamic sizes structure
+      return product.sizes
+    } else if (product?.pricing) {
+      // Convert old pricing structure to new format
+      const sizes = []
+      if (product.pricing.small !== undefined) sizes.push({ name: 'صغير', price: product.pricing.small, isDefault: true })
+      if (product.pricing.medium !== undefined) sizes.push({ name: 'متوسط', price: product.pricing.medium, isDefault: false })
+      if (product.pricing.large !== undefined) sizes.push({ name: 'كبير', price: product.pricing.large, isDefault: false })
+      return sizes.length > 0 ? sizes : [{ name: 'عادي', price: product.price || '', isDefault: true }]
+    } else {
+      // Default single size for new products
+      return [{ name: 'عادي', price: product?.price || '', isDefault: true }]
+    }
+  }
+
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
-    pricing: {
-      small: product?.pricing?.small || product?.price || '',
-      medium: product?.pricing?.medium || product?.price || '',
-      large: product?.pricing?.large || product?.price || ''
-    },
+    sizes: initializeSizes(),
     category: product?.category || '',
     subcategory: product?.subcategory || '',
     available: product?.available ?? true,
@@ -847,6 +994,44 @@ function ProductModal({ product, onClose, onSave }) {
     
     fetchCategories()
   }, [product])
+
+  // Size management functions
+  const addSize = () => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, { name: '', price: '', isDefault: false }]
+    }))
+  }
+
+  const removeSize = (index) => {
+    if (formData.sizes.length <= 1) {
+      alert('يجب أن يكون هناك مقاس واحد على الأقل')
+      return
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateSize = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.map((size, i) => 
+        i === index ? { ...size, [field]: value } : size
+      )
+    }))
+  }
+
+  const setDefaultSize = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.map((size, i) => 
+        ({ ...size, isDefault: i === index })
+      )
+    }))
+  }
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]
@@ -947,8 +1132,8 @@ function ProductModal({ product, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" dir="rtl">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto py-4" dir="rtl">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 my-auto max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           {product ? 'تعديل منتج' : 'إضافة منتج جديد'}
         </h2>
@@ -980,55 +1165,72 @@ function ProductModal({ product, onClose, onSave }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              أسعار المقاسات (جنيه)
-            </label>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">صغير</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.pricing.small}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    pricing: {...formData.pricing, small: e.target.value}
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="السعر الصغير"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">متوسط</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.pricing.medium}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    pricing: {...formData.pricing, medium: e.target.value}
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="السعر المتوسط"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">كبير</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.pricing.large}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    pricing: {...formData.pricing, large: e.target.value}
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="السعر الكبير"
-                  required
-                />
-              </div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                المقاسات والأسعار
+              </label>
+              <button
+                type="button"
+                onClick={addSize}
+                className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+              >
+                <span>+</span>
+                إضافة مقاس
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {formData.sizes.map((size, index) => (
+                <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={size.name}
+                      onChange={(e) => updateSize(index, 'name', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                      placeholder="اسم المقاس"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={size.price}
+                      onChange={(e) => updateSize(index, 'price', e.target.value)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
+                      placeholder="السعر"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDefaultSize(index)}
+                      className={`text-xs px-2 py-1 rounded ${
+                        size.isDefault 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                      title={size.isDefault ? 'المقاس الافتراضي' : 'جعله افتراضي'}
+                    >
+                      {size.isDefault ? '✓' : 'افتراضي'}
+                    </button>
+                    
+                    {formData.sizes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSize(index)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

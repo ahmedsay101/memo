@@ -11,20 +11,34 @@ const ProductSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  sizes: [{
+    name: {
+      type: String,
+      required: [true, 'اسم المقاس مطلوب'],
+      trim: true
+    },
+    price: {
+      type: Number,
+      required: [true, 'سعر المقاس مطلوب'],
+      min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
+    },
+    isDefault: {
+      type: Boolean,
+      default: false
+    }
+  }],
+  // Keep old pricing structure for backward compatibility
   pricing: {
     small: {
       type: Number,
-      required: [true, 'سعر المقاس الصغير مطلوب'],
       min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
     },
     medium: {
       type: Number,
-      required: [true, 'سعر المقاس المتوسط مطلوب'],
       min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
     },
     large: {
       type: Number,
-      required: [true, 'سعر المقاس الكبير مطلوب'],
       min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
     }
   },

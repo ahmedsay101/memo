@@ -12,9 +12,24 @@ const AddonSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true,
     min: 0
   },
+  sizes: [{
+    name: {
+      type: String,
+      required: [true, 'اسم المقاس مطلوب'],
+      trim: true
+    },
+    price: {
+      type: Number,
+      required: [true, 'سعر المقاس مطلوب'],
+      min: [0, 'السعر يجب أن يكون أكبر من أو يساوي صفر']
+    },
+    isDefault: {
+      type: Boolean,
+      default: false
+    }
+  }],
   image: {
     type: String,
     trim: true,

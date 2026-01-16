@@ -56,15 +56,21 @@ export default function ProductCustomizationModal({
         // Pizza products get size + crust options
         const sizeVariants = []
         
-        if (product.pricing) {
-          // Use new size-based pricing
-          sizeVariants.push(
-            { _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true },
-            { _id: 'medium', name: 'وسط', price: product.pricing.medium },
-            { _id: 'large', name: 'كبير', price: product.pricing.large }
-          )
-        } else {
+        if (product.sizes && product.sizes.length > 0) {
+          // Use new dynamic sizes structure
+          sizeVariants.push(...product.sizes.map(size => ({
+            _id: size.name.toLowerCase(),
+            name: size.name,
+            price: size.price,
+            isDefault: size.isDefault
+          })))
+        } else if (product.pricing) {
           // Fallback to old pricing system
+          if (product.pricing.small !== undefined) sizeVariants.push({ _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true })
+          if (product.pricing.medium !== undefined) sizeVariants.push({ _id: 'medium', name: 'وسط', price: product.pricing.medium })
+          if (product.pricing.large !== undefined) sizeVariants.push({ _id: 'large', name: 'كبير', price: product.pricing.large })
+        } else {
+          // Default fallback
           sizeVariants.push(
             { _id: 'small', name: 'صغير', price: 0, isDefault: true },
             { _id: 'medium', name: 'وسط', price: 15 },
@@ -97,14 +103,20 @@ export default function ProductCustomizationModal({
         // Other products only get size options
         const sizeVariants = []
         
-        if (product.pricing) {
-          // Use new size-based pricing - for non-pizza items, use small and large
-          sizeVariants.push(
-            { _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true },
-            { _id: 'large', name: 'كبير', price: product.pricing.large }
-          )
+        if (product.sizes && product.sizes.length > 0) {
+          // Use new dynamic sizes structure
+          sizeVariants.push(...product.sizes.map(size => ({
+            _id: size.name.toLowerCase(),
+            name: size.name,
+            price: size.price,
+            isDefault: size.isDefault
+          })))
+        } else if (product.pricing) {
+          // Fallback to old pricing system - use small and large for non-pizza
+          if (product.pricing.small !== undefined) sizeVariants.push({ _id: 'small', name: 'صغير', price: product.pricing.small, isDefault: true })
+          if (product.pricing.large !== undefined) sizeVariants.push({ _id: 'large', name: 'كبير', price: product.pricing.large })
         } else {
-          // Fallback to old pricing system
+          // Default fallback
           sizeVariants.push(
             { _id: 'small', name: 'صغير', price: 0, isDefault: true },
             { _id: 'large', name: 'كبير', price: 20 }
@@ -152,12 +164,27 @@ export default function ProductCustomizationModal({
     }))
   }
 
-  const handleAddonToggle = (addonId) => {
+  const handleAddonToggle = (addonId, sizeId = null) => {
     setSelectedAddons(prev => {
-      if (prev.includes(addonId)) {
-        return prev.filter(id => id !== addonId)
+      const existingIndex = prev.findIndex(item => 
+        typeof item === 'string' ? item === addonId : item.addonId === addonId
+      )
+      
+      if (existingIndex !== -1) {
+        // Remove addon
+        return prev.filter((_, index) => index !== existingIndex)
       } else {
-        return [...prev, addonId]
+        // Add addon with size selection
+        const addon = addons.find(a => a._id === addonId)
+        if (addon && addon.sizes && addon.sizes.length > 0) {
+          // Addon has sizes - use provided sizeId or default
+          const defaultSize = addon.sizes.find(s => s.isDefault) || addon.sizes[0]
+          const selectedSizeId = sizeId || defaultSize.name.toLowerCase()
+          return [...prev, { addonId, sizeId: selectedSizeId }]
+        } else {
+          // Addon has no sizes or old format - store as string for backward compatibility
+          return [...prev, addonId]
+        }
       }
     })
   }
@@ -180,8 +207,20 @@ export default function ProductCustomizationModal({
       })
     } else {
       // For regular products (pizza and non-pizza)
-      if (product.pricing) {
-        // Use new pricing system - size determines the base price
+      if (product.sizes && product.sizes.length > 0) {
+        // Use new dynamic sizes structure - size determines the base price
+        const selectedSizeVariant = Object.values(variants).flat().find(v => v._id === selectedVariants.size)
+        total = selectedSizeVariant ? selectedSizeVariant.price : product.sizes[0].price
+        
+        // Add other variant prices (like crust)
+        Object.entries(selectedVariants).forEach(([variantType, variantId]) => {
+          if (variantType !== 'size') { // Skip size as it's already the base price
+            const variant = Object.values(variants).flat().find(v => v._id === variantId)
+            if (variant) total += variant.price
+          }
+        })
+      } else if (product.pricing) {
+        // Use old pricing system - size determines the base price
         const sizeVariant = Object.values(variants).flat().find(v => v._id === selectedVariants.size)
         total = sizeVariant ? sizeVariant.price : product.pricing.small
         
@@ -205,9 +244,27 @@ export default function ProductCustomizationModal({
       
       // Add addon prices (only for pizza products)
       if (product.categoryName === 'بيتزا') {
-        selectedAddons.forEach(addonId => {
-          const addon = addons.find(a => a._id === addonId)
-          if (addon) total += addon.price
+        selectedAddons.forEach(addonSelection => {
+          if (typeof addonSelection === 'string') {
+            // Old format - just addon ID
+            const addon = addons.find(a => a._id === addonSelection)
+            if (addon) {
+              total += addon.price || 0
+            }
+          } else {
+            // New format - addon with size selection
+            const addon = addons.find(a => a._id === addonSelection.addonId)
+            if (addon) {
+              if (addon.sizes && addon.sizes.length > 0) {
+                // Find selected size price
+                const selectedSize = addon.sizes.find(s => s.name.toLowerCase() === addonSelection.sizeId)
+                total += selectedSize ? selectedSize.price : addon.sizes[0].price
+              } else {
+                // Fallback to single price
+                total += addon.price || 0
+              }
+            }
+          }
         })
       }
     }
@@ -237,18 +294,49 @@ export default function ProductCustomizationModal({
       }
     })
     
-    // Build addons array with full objects (name, price)
+    // Build addons array with full objects (name, price, size)
     const addonObjects = []
     if (product.categoryName === 'بيتزا' || product.category === 'pizza') {
-      selectedAddons.forEach(addonId => {
-        console.log(`🔍 Processing addon ${addonId}`)
-        const addonOption = addons.find(a => a._id === addonId)
-        console.log(`🔍 Found addon option:`, addonOption)
-        if (addonOption) {
-          addonObjects.push({
-            name: addonOption.name,
-            price: addonOption.price || 0
-          })
+      selectedAddons.forEach(addonSelection => {
+        if (typeof addonSelection === 'string') {
+          // Old format - just addon ID
+          console.log(`🔍 Processing addon (old format) ${addonSelection}`)
+          const addonOption = addons.find(a => a._id === addonSelection)
+          console.log(`🔍 Found addon option:`, addonOption)
+          if (addonOption) {
+            addonObjects.push({
+              name: addonOption.name,
+              price: addonOption.price || 0,
+              size: 'عادي'
+            })
+          }
+        } else {
+          // New format - addon with size selection
+          console.log(`🔍 Processing addon (new format)`, addonSelection)
+          const addonOption = addons.find(a => a._id === addonSelection.addonId)
+          console.log(`🔍 Found addon option:`, addonOption)
+          if (addonOption) {
+            let sizePrice = addonOption.price || 0
+            let sizeName = 'عادي'
+            
+            if (addonOption.sizes && addonOption.sizes.length > 0) {
+              const selectedSize = addonOption.sizes.find(s => s.name.toLowerCase() === addonSelection.sizeId)
+              if (selectedSize) {
+                sizePrice = selectedSize.price
+                sizeName = selectedSize.name
+              } else {
+                // Fallback to first size
+                sizePrice = addonOption.sizes[0].price
+                sizeName = addonOption.sizes[0].name
+              }
+            }
+            
+            addonObjects.push({
+              name: addonOption.name,
+              price: sizePrice,
+              size: sizeName
+            })
+          }
         }
       })
     }
@@ -429,6 +517,19 @@ export default function ProductCustomizationModal({
     )
   }
 
+  const isAddonSelected = (addonId) => {
+    return selectedAddons.some(selection => 
+      typeof selection === 'string' ? selection === addonId : selection.addonId === addonId
+    )
+  }
+
+  const getSelectedAddonSize = (addonId) => {
+    const selection = selectedAddons.find(selection => 
+      typeof selection !== 'string' && selection.addonId === addonId
+    )
+    return selection ? selection.sizeId : null
+  }
+
   const renderToppingsSection = () => {
     const toppings = addons.filter(addon => addon.category === 'topping')
     if (toppings.length === 0) return null
@@ -439,46 +540,93 @@ export default function ProductCustomizationModal({
         <p className="font-arabic text-sm text-gray-600 mb-3 text-right">يمكنك اختيار أكثر من واحد</p>
         <div className="grid grid-cols-3 gap-3">
           {toppings.map((topping) => (
-            <label 
-              key={topping._id}
-              className={`relative flex flex-col items-center p-3 border rounded-xl cursor-pointer transition-all ${
-                selectedAddons.includes(topping._id)
-                  ? 'border-orange-500 bg-orange-50 shadow-md' 
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedAddons.includes(topping._id)}
-                onChange={() => handleAddonToggle(topping._id)}
-                className="sr-only"
-              />
-              
-              {/* Image */}
-              <div className="w-16 h-16 mb-2 relative overflow-hidden rounded-lg">
-                {topping.image ? (
-                  <Image 
-                    src={topping.image} 
-                    alt={topping.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                    <span className="text-2xl">🍕</span>
+            <div key={topping._id} className={`relative border rounded-xl transition-all ${
+              isAddonSelected(topping._id)
+                ? 'border-orange-500 bg-orange-50 shadow-md' 
+                : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+            }`}>
+              <label 
+                className="flex flex-col items-center p-3 cursor-pointer"
+                onClick={() => handleAddonToggle(topping._id)}
+              >
+                <input
+                  type="checkbox"
+                  checked={isAddonSelected(topping._id)}
+                  onChange={() => handleAddonToggle(topping._id)}
+                  className="sr-only"
+                />
+                
+                {/* Image */}
+                <div className="w-16 h-16 mb-2 relative overflow-hidden rounded-lg">
+                  {topping.image ? (
+                    <Image 
+                      src={topping.image} 
+                      alt={topping.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
+                      <span className="text-2xl">🍕</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Name */}
+                <span className="font-arabic text-sm font-medium text-center text-gray-800 mb-1">
+                  {topping.name}
+                </span>
+                
+                {/* Price or Size Options */}
+                {topping.sizes && topping.sizes.length > 0 ? (
+                  <div className="text-xs text-center">
+                    {topping.sizes.length === 1 ? (
+                      <span className="font-arabic font-bold text-orange-600">
+                        +{topping.sizes[0].price} جنيه
+                      </span>
+                    ) : (
+                      <span className="font-arabic font-bold text-orange-600">
+                        +{Math.min(...topping.sizes.map(s => s.price))} - {Math.max(...topping.sizes.map(s => s.price))} جنيه
+                      </span>
+                    )}
                   </div>
+                ) : (
+                  <span className="font-arabic text-xs font-bold text-orange-600">
+                    +EGP {topping.price}.00
+                  </span>
                 )}
-              </div>
+              </label>
               
-              {/* Name */}
-              <span className="font-arabic text-sm font-medium text-center text-gray-800 mb-1">
-                {topping.name}
-              </span>
-              
-              {/* Price */}
-              <span className="font-arabic text-xs font-bold text-orange-600">
-                +EGP {topping.price}.00
-              </span>
+              {/* Size Selection (if addon has multiple sizes and is selected) */}
+              {isAddonSelected(topping._id) && topping.sizes && topping.sizes.length > 1 && (
+                <div className="border-t border-gray-200 p-2 bg-gray-50">
+                  <div className="space-y-1">
+                    {topping.sizes.map((size) => (
+                      <label 
+                        key={size.name}
+                        className={`flex items-center justify-between text-xs cursor-pointer p-1 rounded ${
+                          getSelectedAddonSize(topping._id) === size.name.toLowerCase()
+                            ? 'bg-orange-200' : 'hover:bg-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="radio"
+                            name={`addon_size_${topping._id}`}
+                            checked={getSelectedAddonSize(topping._id) === size.name.toLowerCase()}
+                            onChange={() => handleAddonToggle(topping._id, size.name.toLowerCase())}
+                            className="w-3 h-3"
+                          />
+                          <span className="font-arabic">{size.name}</span>
+                        </div>
+                        <span className="font-arabic font-bold text-orange-600">
+                          +{size.price} جنيه
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Selection Indicator */}
               {selectedAddons.includes(topping._id) && (
@@ -488,7 +636,7 @@ export default function ProductCustomizationModal({
                   </svg>
                 </div>
               )}
-            </label>
+            </div>
           ))}
         </div>
       </div>

@@ -310,11 +310,23 @@ export default function MenuSection() {
                           <div className="flex items-center justify-between">
                             <div className="text-right">
                               <span className="text-2xl font-bold text-gray-800 font-arabic">
-                                {product.pricing ? (
-                                  // Show price range for products with size-based pricing
-                                  product.pricing.small === product.pricing.large ? 
-                                    `${product.pricing.small} جنيه` : 
-                                    `${product.pricing.small} - ${product.pricing.large} جنيه`
+                                {product.sizes && product.sizes.length > 0 ? (
+                                  // Show price range for products with dynamic sizes
+                                  (() => {
+                                    const prices = product.sizes.map(s => s.price).sort((a, b) => a - b)
+                                    return prices[0] === prices[prices.length - 1] ? 
+                                      `${prices[0]} جنيه` : 
+                                      `${prices[0]} - ${prices[prices.length - 1]} جنيه`
+                                  })()
+                                ) : product.pricing ? (
+                                  // Show price range for products with old pricing structure
+                                  (() => {
+                                    const prices = [product.pricing.small, product.pricing.medium, product.pricing.large]
+                                      .filter(p => p !== undefined).sort((a, b) => a - b)
+                                    return prices[0] === prices[prices.length - 1] ? 
+                                      `${prices[0]} جنيه` : 
+                                      `${prices[0]} - ${prices[prices.length - 1]} جنيه`
+                                  })()
                                 ) : (
                                   // Fallback to single price
                                   `${product.price} جنيه`
@@ -467,11 +479,23 @@ export default function MenuSection() {
                         <div className="flex items-center justify-between">
                           <div className="text-right">
                             <span className="text-2xl font-bold text-gray-800 font-arabic">
-                              {product.pricing ? (
-                                // Show price range for products with size-based pricing
-                                product.pricing.small === product.pricing.large ? 
-                                  `${product.pricing.small} جنيه` : 
-                                  `${product.pricing.small} - ${product.pricing.large} جنيه`
+                              {product.sizes && product.sizes.length > 0 ? (
+                                // Show price range for products with dynamic sizes
+                                (() => {
+                                  const prices = product.sizes.map(s => s.price).sort((a, b) => a - b)
+                                  return prices[0] === prices[prices.length - 1] ? 
+                                    `${prices[0]} جنيه` : 
+                                    `${prices[0]} - ${prices[prices.length - 1]} جنيه`
+                                })()
+                              ) : product.pricing ? (
+                                // Show price range for products with old pricing structure
+                                (() => {
+                                  const prices = [product.pricing.small, product.pricing.medium, product.pricing.large]
+                                    .filter(p => p !== undefined).sort((a, b) => a - b)
+                                  return prices[0] === prices[prices.length - 1] ? 
+                                    `${prices[0]} جنيه` : 
+                                    `${prices[0]} - ${prices[prices.length - 1]} جنيه`
+                                })()
                               ) : (
                                 // Fallback to single price
                                 `${product.price} جنيه`

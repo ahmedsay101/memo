@@ -91,7 +91,7 @@ export async function PUT(request, { params }) {
       )
     }
 
-    // Validate required fields - check for pricing object or old price field
+    // Validate required fields
     if (!data.name) {
       return NextResponse.json(
         { error: 'اسم المنتج مطلوب' },
@@ -99,22 +99,34 @@ export async function PUT(request, { params }) {
       )
     }
 
-    // Validate pricing - either new pricing object or old price field
-    if (!data.pricing && !data.price) {
+    // Validate sizes or pricing
+    if (!data.sizes && !data.pricing && !data.price) {
       return NextResponse.json(
         { error: 'أسعار المنتج مطلوبة' },
         { status: 400 }
       )
     }
 
-    if (data.pricing && (!data.pricing.small || !data.pricing.medium || !data.pricing.large)) {
+    if (data.sizes && data.sizes.length === 0) {
       return NextResponse.json(
-        { error: 'جميع أسعار المقاسات مطلوبة (صغير، متوسط، كبير)' },
+        { error: 'يجب إضافة مقاس واحد على الأقل' },
         { status: 400 }
       )
     }
 
-    // Update product
+    // Validate sizes if provided
+    if (data.sizes) {
+      for (const size of data.sizes) {
+        if (!size.name || !size.price) {
+          return NextResponse.json(
+            { error: 'اسم المقاس والسعر مطلوبان لكل مقاس' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // Create update data object
     const updateData = {
       name: data.name,
       description: data.description || '',
@@ -124,15 +136,36 @@ export async function PUT(request, { params }) {
       image: data.image || ''
     }
 
-    // Handle pricing - new structure takes priority
-    if (data.pricing) {
-      updateData.pricing = {
-        small: parseFloat(data.pricing.small),
-        medium: parseFloat(data.pricing.medium),
-        large: parseFloat(data.pricing.large)
+    // Handle pricing structure
+    if (data.sizes && data.sizes.length > 0) {
+      // Use new dynamic sizes structure
+      updateData.sizes = data.sizes.map(size => ({
+        name: size.name,
+        price: parseFloat(size.price),
+        isDefault: !!size.isDefault
+      }))
+      // Set default price for backward compatibility
+      const defaultSize = data.sizes.find(s => s.isDefault) || data.sizes[0]
+      updateData.price = parseFloat(defaultSize.price)
+    } else if (data.pricing) {
+      // Handle old pricing structure - convert to sizes
+      const sizes = []
+      if (data.pricing.small !== undefined) sizes.push({ name: 'صغير', price: parseFloat(data.pricing.small), isDefault: true })
+      if (data.pricing.medium !== undefined) sizes.push({ name: 'متوسط', price: parseFloat(data.pricing.medium), isDefault: false })
+      if (data.pricing.large !== undefined) sizes.push({ name: 'كبير', price: parseFloat(data.pricing.large), isDefault: false })
+      
+      if (sizes.length > 0) {
+        updateData.sizes = sizes
+        updateData.pricing = {
+          small: data.pricing.small ? parseFloat(data.pricing.small) : undefined,
+          medium: data.pricing.medium ? parseFloat(data.pricing.medium) : undefined,
+          large: data.pricing.large ? parseFloat(data.pricing.large) : undefined
+        }
+        updateData.price = parseFloat(data.pricing.small || data.pricing.medium || data.pricing.large)
       }
-      updateData.price = parseFloat(data.pricing.medium) // Set medium as default price for compatibility
     } else if (data.price) {
+      // Single price - create default size
+      updateData.sizes = [{ name: 'عادي', price: parseFloat(data.price), isDefault: true }]
       updateData.price = parseFloat(data.price)
     }
 
