@@ -893,9 +893,6 @@ export default function CartPage() {
                             <span className="text-blue-600">🔒</span>
                             <span className="font-arabic font-semibold text-blue-700">الدفع آمن ومحمي</span>
                           </div>
-                          <p className="text-sm text-blue-600 font-arabic">
-                            نستخدم بوابة Paymob الآمنة للدفع - جميع المعاملات مؤمنة عبر تقنية التشفير SSL
-                          </p>
                         </div>
 
                         {/* Supported Cards */}
