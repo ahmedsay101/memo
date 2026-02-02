@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
+import TermsAcceptance from '../../components/TermsAcceptance'
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
@@ -14,6 +15,7 @@ export default function CartPage() {
   const [showModal, setShowModal] = useState(false)
   const [modalContent, setModalContent] = useState({ title: '', message: '', type: 'error' })
   const [validationErrors, setValidationErrors] = useState({})
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [orderData, setOrderData] = useState({
     customerName: '',
     phone: '',
@@ -900,19 +902,28 @@ export default function CartPage() {
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-arabic font-semibold text-gray-700 mb-3 text-center">البطاقات المقبولة:</h4>
                           <div className="flex items-center justify-center gap-4 flex-wrap">
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
-                              <span className="text-blue-600 font-bold text-lg">VISA</span>
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
+                              <div className="w-8 h-5 bg-blue-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">V</span>
+                              </div>
+                              <span className="text-blue-600 font-bold text-sm">VISA</span>
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
-                              <span className="text-red-600 font-bold text-lg">●● MasterCard</span>
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
+                              <div className="w-8 h-5 bg-red-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">●●</span>
+                              </div>
+                              <span className="text-red-600 font-bold text-sm">MasterCard</span>
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
+                              <div className="w-8 h-5 bg-green-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">M</span>
+                              </div>
                               <span className="text-green-600 font-bold text-sm">Meeza</span>
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border">
-                              <span className="text-purple-600 font-bold text-sm">CIB</span>
-                            </div>
                           </div>
+                          <p className="text-xs text-gray-500 text-center mt-2 font-arabic">
+                            جميع البطاقات البنكية المصرية والدولية مقبولة
+                          </p>
                         </div>
 
                         {/* Payment Process Steps */}
@@ -997,6 +1008,12 @@ export default function CartPage() {
                       </div>
                     )}
                     
+                    {/* Terms and Conditions Acceptance */}
+                    <TermsAcceptance 
+                      onAccept={setTermsAccepted} 
+                      isAccepted={termsAccepted} 
+                    />
+                    
                     <div className="mt-8 flex justify-between">
                       <button 
                         onClick={() => setCurrentStep(2)}
@@ -1005,9 +1022,9 @@ export default function CartPage() {
                         العودة لطريقة الاستلام
                       </button>
                       <button 
-                        className={`${isSubmitting ? 'bg-gray-400' : 'bg-teal-500 hover:bg-teal-600'} text-white font-arabic font-bold px-8 py-3 rounded-lg transition-colors relative`}
+                        className={`${isSubmitting || !termsAccepted ? 'bg-gray-400' : 'bg-teal-500 hover:bg-teal-600'} text-white font-arabic font-bold px-8 py-3 rounded-lg transition-colors relative`}
                         onClick={handleOrderSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !termsAccepted}
                       >
                         {isSubmitting ? (
                           <div className="flex items-center justify-center">

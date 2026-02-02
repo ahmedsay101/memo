@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 py-12 px-4" dir="rtl">
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           {/* Logo and Description */}
           <div className="text-center md:text-right">
             <div className="mb-4">
@@ -46,11 +46,21 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold text-gray-800 font-arabic mb-4">خريطة الموقع</h3>
             <ul className="space-y-2 font-arabic text-gray-600">
-              <li><a href="#" className="hover:text-teal-600 transition-colors">الصفحة الرئيسية</a></li>
-              <li><a href="#" className="hover:text-teal-600 transition-colors">طلب بيتزا</a></li>
-              <li><a href="#" className="hover:text-teal-600 transition-colors">عن ميموز</a></li>
-              <li><a href="#" className="hover:text-teal-600 transition-colors">تواصل معنا</a></li>
+              <li><a href="/" className="hover:text-teal-600 transition-colors">الصفحة الرئيسية</a></li>
+              <li><a href="/#menu" className="hover:text-teal-600 transition-colors">طلب بيتزا</a></li>
+              <li><a href="/about" className="hover:text-teal-600 transition-colors">عن ميموز</a></li>
+              <li><a href="/contact" className="hover:text-teal-600 transition-colors">تواصل معنا</a></li>
               <li><a href="#" className="hover:text-teal-600 transition-colors">وظائف ميموز</a></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-800 font-arabic mb-4">السياسات القانونية</h3>
+            <ul className="space-y-2 font-arabic text-gray-600 text-sm">
+              <li><a href="/terms-conditions" className="hover:text-teal-600 transition-colors">الشروط والأحكام</a></li>
+              <li><a href="/policies" className="hover:text-teal-600 transition-colors">سياسات الإلغاء والاستبدال</a></li>
+              <li><a href="/privacy-policy" className="hover:text-teal-600 transition-colors">سياسة الخصوصية</a></li>
             </ul>
           </div>
 
