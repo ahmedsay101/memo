@@ -13,6 +13,7 @@ export default function MenuSection() {
   const [cartItems, setCartItems] = useState([])
   const [showCustomizationModal, setShowCustomizationModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [openSubcategories, setOpenSubcategories] = useState({})
 
   // Load cart from localStorage
   useEffect(() => {
@@ -176,7 +177,18 @@ export default function MenuSection() {
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId)
+    setOpenSubcategories({})
   }
+
+  const toggleSubcategory = (subcategoryId) => {
+    setOpenSubcategories(prev => ({
+      ...prev,
+      [subcategoryId]: !prev[subcategoryId]
+    }))
+  }
+
+  // Check if current category is pizza
+  const isPizzaCategory = categories.find(cat => cat.id === selectedCategory)?.name === 'بيتزا'
 
 
 
@@ -257,10 +269,94 @@ export default function MenuSection() {
                   )
                   
                   if (subcategoryProducts.length === 0) return null
+
+                  const isOpen = openSubcategories[subcategory.id]
                 
                 return (
-                  <div key={subcategory.id} className="mb-16">
+                  <div key={subcategory.id} className="mb-6">
                     {/* Subcategory Heading */}
+                    {isPizzaCategory ? (
+                      // Accordion style for pizza category
+                      <>
+                        <button
+                          onClick={() => toggleSubcategory(subcategory.id)}
+                          className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-xl px-6 py-4 mb-4 transition-colors duration-200 shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-1 rounded" style={{ backgroundColor: '#FF8500' }}></div>
+                            <h3 className="text-2xl font-bold text-gray-800 font-arabic">
+                              {subcategory.name}
+                            </h3>
+                            <span className="text-sm text-gray-500 font-arabic">({subcategoryProducts.length})</span>
+                          </div>
+                          <svg
+                            className={`w-6 h-6 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        {/* Collapsible Products Grid */}
+                        <div className={`overflow-hidden transition-all duration-400 ease-in-out ${isOpen ? 'max-h-[5000px] opacity-100 mb-8' : 'max-h-0 opacity-0'}`}>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-2">
+                            {subcategoryProducts.map((product) => (
+                              <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                                <div className="relative h-48 bg-gray-100">
+                                  {product.image ? (
+                                    <Image src={product.image} alt={product.name} fill className="object-cover" />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                                      <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                      </svg>
+                                    </div>
+                                  )}
+                                  {!product.available && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                      <span className="text-white font-arabic font-bold bg-red-600 px-4 py-2 rounded-lg">غير متوفر</span>
+                                    </div>
+                                  )}
+                                  {product.flags && product.flags.length > 0 && (
+                                    <div className="absolute top-3 right-3 flex flex-col gap-1">
+                                      {product.flags.map((flag, i) => (
+                                        <span key={i} className="bg-orange-500 text-white text-xs font-bold font-arabic px-3 py-1 rounded-full shadow-md">{flag}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="p-6">
+                                  <h3 className="text-xl font-bold font-arabic mb-2 text-gray-800">{product.name}</h3>
+                                  <p className="text-gray-600 font-arabic text-sm mb-4 leading-relaxed">{product.description}</p>
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-right">
+                                      <span className="text-2xl font-bold text-gray-800 font-arabic">
+                                        {product.sizes && product.sizes.length > 0
+                                          ? product.sizes.map(s => s.price).join(' - ') + ' جنيه'
+                                          : product.pricing
+                                            ? [product.pricing.small, product.pricing.medium, product.pricing.large].filter(p => p !== undefined).join(' - ') + ' جنيه'
+                                            : `${product.price} جنيه`
+                                        }
+                                      </span>
+                                    </div>
+                                    <button
+                                      onClick={() => handleProductClick(product)}
+                                      disabled={!product.available}
+                                      className={`px-6 py-2 rounded-lg font-arabic font-bold text-white transition-colors duration-200 ${product.available ? 'hover:opacity-90 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                                      style={{ backgroundColor: product.available ? '#009495' : '#666' }}
+                                    >
+                                      + أضف للسلة
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      // Default style for non-pizza categories
+                      <>
                     <div className="text-right mb-8">
                       <h3 className="text-3xl font-bold text-gray-800 font-arabic mb-2">
                         {subcategory.name}
@@ -349,6 +445,8 @@ export default function MenuSection() {
                       </div>
                     ))}
                   </div>
+                      </>
+                    )}
                 </div>
               )
             })}
