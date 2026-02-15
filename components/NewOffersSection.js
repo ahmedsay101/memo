@@ -1,28 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 
 export default function NewOffersSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [slides, setSlides] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const slides = [
-    {
-      id: 1,
-      image: '/images/pizza-offer-1.svg',
-      alt: 'اشتر 1 بيتزا - احصل على 1 مجاناً'
-    },
-    {
-      id: 2,
-      image: '/images/pizza-offer-1.svg',
-      alt: 'عرض خاص - خصم 50%'
-    },
-    {
-      id: 3,
-      image: '/images/pizza-offer-1.svg',
-      alt: 'وجبة عائلية - بيتزا كبيرة + مشروبات'
+  // Fetch slides from API
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const response = await fetch('/api/slides')
+        const data = await response.json()
+        if (data.success && data.slides.length > 0) {
+          setSlides(data.slides)
+        }
+      } catch (error) {
+        console.error('Error fetching slides:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchSlides()
+  }, [])
 
   // Auto-slide functionality
   useEffect(() => {
@@ -45,6 +47,37 @@ export default function NewOffersSection() {
     setCurrentSlide(index)
   }
 
+  // Touch/drag swipe support
+  const touchStartX = useRef(null)
+  const touchEndX = useRef(null)
+  const mouseStartX = useRef(null)
+  const isDragging = useRef(false)
+  const sliderRef = useRef(null)
+
+  const handleSwipe = useCallback(() => {
+    const start = touchStartX.current ?? mouseStartX.current
+    const end = touchEndX.current
+    if (start === null || end === null) return
+    const diff = start - end
+    const threshold = 50
+    if (Math.abs(diff) > threshold) {
+      // RTL layout: swipe directions are reversed
+      if (diff > 0) prevSlide()
+      else nextSlide()
+    }
+  }, [slides.length])
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; touchEndX.current = null }
+  const onTouchMove = (e) => { touchEndX.current = e.touches[0].clientX }
+  const onTouchEnd = () => handleSwipe()
+
+  const onMouseDown = (e) => { isDragging.current = true; mouseStartX.current = e.clientX; touchEndX.current = null; e.preventDefault() }
+  const onMouseMove = (e) => { if (isDragging.current) touchEndX.current = e.clientX }
+  const onMouseUp = () => { if (isDragging.current) { isDragging.current = false; handleSwipe() } }
+  const onMouseLeave = () => { if (isDragging.current) { isDragging.current = false; handleSwipe() } }
+
+  if (loading || slides.length === 0) return null
+
   return (
     <section className="py-16 px-4 bg-white">
       <div className="container mx-auto" dir="rtl">
@@ -58,7 +91,17 @@ export default function NewOffersSection() {
 
         {/* Slider Container */}
         <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl aspect-[16/9] sm:aspect-[20/9] lg:aspect-[24/9]">
+          <div
+            ref={sliderRef}
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl aspect-[16/9] sm:aspect-[20/9] lg:aspect-[24/9] cursor-grab active:cursor-grabbing select-none"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
+          >
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -70,7 +113,7 @@ export default function NewOffersSection() {
                 <div className="relative w-full h-full bg-white">
                   <Image
                     src={slide.image}
-                    alt={slide.alt}
+                    alt={slide.title || `سلايد ${index + 1}`}
                     fill
                     className="object-contain"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"

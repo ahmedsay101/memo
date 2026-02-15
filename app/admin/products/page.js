@@ -944,7 +944,8 @@ function ProductModal({ product, onClose, onSave }) {
     category: product?.category || '',
     subcategory: product?.subcategory || '',
     available: product?.available ?? true,
-    image: product?.image || ''
+    image: product?.image || '',
+    flags: product?.flags || []
   })
   const [loading, setLoading] = useState(false)
   const [imageFile, setImageFile] = useState(null)
@@ -1347,6 +1348,78 @@ function ProductModal({ product, onClose, onSave }) {
             <p className="text-xs text-gray-500 mt-1">
               اختر صورة بصيغة JPG، PNG أو GIF (حد أقصى 5 ميجابايت)
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              العلامات
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.flags.map((flag, index) => (
+                <span key={index} className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-arabic">
+                  {flag}
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, flags: prev.flags.filter((_, i) => i !== index) }))}
+                    className="text-orange-500 hover:text-orange-700 font-bold"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                id="flagInput"
+                placeholder="مثال: جديد، الأكثر مبيعاً"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const val = e.target.value.trim()
+                    if (val && !formData.flags.includes(val)) {
+                      setFormData(prev => ({ ...prev, flags: [...prev.flags, val] }))
+                      e.target.value = ''
+                    }
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const input = document.getElementById('flagInput')
+                  const val = input.value.trim()
+                  if (val && !formData.flags.includes(val)) {
+                    setFormData(prev => ({ ...prev, flags: [...prev.flags, val] }))
+                    input.value = ''
+                  }
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-md text-sm"
+              >
+                إضافة
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {['جديد', 'الأكثر مبيعاً', 'عرض خاص', 'حصري'].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => {
+                    if (!formData.flags.includes(suggestion)) {
+                      setFormData(prev => ({ ...prev, flags: [...prev.flags, suggestion] }))
+                    }
+                  }}
+                  className={`text-xs px-2 py-1 rounded-full border ${
+                    formData.flags.includes(suggestion)
+                      ? 'bg-orange-100 border-orange-300 text-orange-600'
+                      : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center">

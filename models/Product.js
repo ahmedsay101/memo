@@ -79,7 +79,11 @@ const ProductSchema = new mongoose.Schema({
   hasAddons: {
     type: Boolean,
     default: true
-  }
+  },
+  flags: [{
+    type: String,
+    trim: true
+  }]
 }, {
   timestamps: true
 })

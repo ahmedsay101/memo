@@ -133,7 +133,8 @@ export async function PUT(request, { params }) {
       category: data.category || 'pizza',
       subcategory: data.subcategory || 'أساسي',
       available: data.available ?? true,
-      image: data.image || ''
+      image: data.image || '',
+      flags: Array.isArray(data.flags) ? data.flags : []
     }
 
     // Handle pricing structure

@@ -1,6 +1,38 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+
+const fallbackBranches = [
+  {
+    title: "فرع الحلو",
+    address: "ش الحلو مع علي بك تحت مستشفى الشروق",
+  },
+  {
+    title: "فرع الإستاد",
+    address: "ش الاستاد بجوار مستشفى الكنانه",
+  }
+]
+
 export default function Footer() {
+  const [branches, setBranches] = useState(fallbackBranches)
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch('/api/branches')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.branches && data.branches.length > 0) {
+            setBranches(data.branches)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching branches:', error)
+      }
+    }
+    fetchBranches()
+  }, [])
+
   return (
     <footer className="bg-gray-100 py-12 px-4" dir="rtl">
       <div className="container mx-auto">
@@ -68,18 +100,12 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold text-gray-800 font-arabic mb-4">فين تلاقينا</h3>
             <div className="space-y-3 font-arabic text-gray-600 text-sm">
-              <div>
-                <p className="font-semibold">الفرع الأول هنيطا</p>
-                <p>شارع الحج نعطي على كل الكرم</p>
-              </div>
-              <div>
-                <p className="font-semibold">الفرع الثاني هنيطا</p>
-                <p>شارع الاستاد جوار مستشفى الكلية</p>
-              </div>
-              <div>
-                <p className="font-semibold">الفرع الثالث المضروبة</p>
-                <p>شارع الاستاد جوار مستشفى الكلية</p>
-              </div>
+              {branches.map((branch, index) => (
+                <div key={index}>
+                  <p className="font-semibold">{branch.title}</p>
+                  <p>{branch.address}</p>
+                </div>
+              ))}
             </div>
           </div>
 

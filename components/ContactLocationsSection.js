@@ -1,6 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+const fallbackLocations = [
+  {
+    id: 1,
+    name: "فرع الحلو",
+    address: "ش الحلو مع علي بك تحت مستشفى الشروق",
+    phone: "15596",
+    hours: "يومياً: 10:00 ص - 2:00 ص",
+    mapEmbedUrl: ""
+  },
+  {
+    id: 2,
+    name: "فرع الإستاد",
+    address: "ش الاستاد بجوار مستشفى الكنانه",
+    phone: "15596",
+    hours: "يومياً: 10:00 ص - 2:00 ص",
+    mapEmbedUrl: ""
+  }
+]
 
 export default function ContactLocationsSection({ 
   title = "فين تلاقينا",
@@ -8,34 +27,32 @@ export default function ContactLocationsSection({
   className = "",
   backgroundColor = "bg-white"
 }) {
-  const [expandedLocation, setExpandedLocation] = useState(null) // No location expanded by default
+  const [expandedLocation, setExpandedLocation] = useState(null)
+  const [locations, setLocations] = useState(fallbackLocations)
 
-  const locations = [
-    {
-      id: 1,
-      name: "طنطا - فرع الاستاد",
-      address: "شارع الحلو بجوار مستشفى الشوكى",
-      phone: "01234567890",
-      hours: "يومياً 10:00 ص - 2:00 ص",
-      mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d110565.30017513139!2d30.920155693652236!3d30.788749637817374!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f7ca5d59f5bae7%3A0x77bdf67c97d6bd4d!2sTanta%2C%20Tanta%2C%20Gharbia%20Governorate!5e0!3m2!1sen!2seg!4v1696425000000!5m2!1sen!2seg"
-    },
-    {
-      id: 2,
-      name: "طنطا - فرع الجامعة",
-      address: "شارع الجامعة بجوار كلية الطب",
-      phone: "01234567891",
-      hours: "يومياً 10:00 ص - 2:00 ص",
-      mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d110565.30017513139!2d30.920155693652236!3d30.788749637817374!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f7ca5d59f5bae7%3A0x77bdf67c97d6bd4d!2sTanta%2C%20Tanta%2C%20Gharbia%20Governorate!5e0!3m2!1sen!2seg!4v1696425000001!5m2!1sen!2seg"
-    },
-    {
-      id: 3,
-      name: "المنصورة - فرع الاستاد",
-      address: "شارع الاستاد بجوار مستشفى الشوكى",
-      phone: "01234567892",
-      hours: "يومياً 10:00 ص - 2:00 ص",
-      mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d109741.50486700027!2d31.369293293633228!3d31.037958363058103!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f79db9d4b2a1b7%3A0x21a1c7a0b3a3b3a3!2sMansoura%2C%20Dakahlia%20Governorate!5e0!3m2!1sen!2seg!4v1696425000002!5m2!1sen!2seg"
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch('/api/branches')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.branches && data.branches.length > 0) {
+            setLocations(data.branches.map((b, i) => ({
+              id: b.id || i + 1,
+              name: b.title,
+              address: b.address,
+              phone: b.phone,
+              hours: b.hours,
+              mapEmbedUrl: b.mapEmbedUrl || ""
+            })))
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching branches:', error)
+      }
     }
-  ]
+    fetchBranches()
+  }, [])
 
   const toggleLocation = (index) => {
     setExpandedLocation(expandedLocation === index ? null : index)

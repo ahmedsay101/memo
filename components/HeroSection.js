@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image'
 
 export default function HeroSection() {
@@ -51,13 +53,13 @@ export default function HeroSection() {
 
             {/* CTA Buttons */}
             <div className="flex sm:flex-row gap-4 justify-center lg:justify-start mt-20 flex-nowrap">
-              <button className="flex flex-nowrap bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-arabic font-bold text-xl transition-colors shadow-lg">
+              <button onClick={() => document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' })} className="flex flex-nowrap bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-arabic font-bold text-xl transition-colors shadow-lg">
                 اطلب دلوقتي
                 <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12.5 2.95752C6.99 2.95752 2.5 7.44752 2.5 12.9575C2.5 18.4675 6.99 22.9575 12.5 22.9575C18.01 22.9575 22.5 18.4675 22.5 12.9575C22.5 7.44752 18.01 2.95752 12.5 2.95752ZM16.56 12.2275L13.03 15.7575C12.88 15.9075 12.69 15.9775 12.5 15.9775C12.31 15.9775 12.12 15.9075 11.97 15.7575L8.44 12.2275C8.15 11.9375 8.15 11.4575 8.44 11.1675C8.73 10.8775 9.21 10.8775 9.5 11.1675L12.5 14.1675L15.5 11.1675C15.79 10.8775 16.27 10.8775 16.56 11.1675C16.85 11.4575 16.85 11.9275 16.56 12.2275Z" fill="white"/>
                 </svg>
               </button>
-              <button className="text-teal-500 px-6 py-4 rounded-lg font-arabic font-bold text-lg transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })} className="text-teal-500 px-6 py-4 rounded-lg font-arabic font-bold text-lg transition-colors flex items-center justify-center gap-2">
                 اسمع من اللي جربونا
                 <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19.9201 9.90747L13.4001 16.4275C12.6301 17.1975 11.3701 17.1975 10.6001 16.4275L4.08008 9.90747" stroke="#009495" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>

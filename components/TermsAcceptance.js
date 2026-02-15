@@ -173,7 +173,7 @@ function PoliciesContent() {
       <section>
         <h3 className="font-semibold text-purple-600 mb-2">سياسة التوصيل</h3>
         <ul className="list-disc list-inside space-y-1">
-          <li>هنيطا والمناطق المجاورة: 5 جنيه (حد أدنى 30 جنيه)</li>
+          <li> والمناطق المجاورة: 5 جنيه (حد أدنى 30 جنيه)</li>
           <li>المضروبة: 10 جنيه (حد أدنى 50 جنيه)</li>
           <li>المناطق البعيدة: 15 جنيه (حد أدنى 75 جنيه)</li>
         </ul>

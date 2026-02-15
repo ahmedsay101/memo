@@ -295,6 +295,15 @@ export default function MenuSection() {
                               </span>
                             </div>
                           )}
+                          {product.flags && product.flags.length > 0 && (
+                            <div className="absolute top-3 right-3 flex flex-col gap-1">
+                              {product.flags.map((flag, i) => (
+                                <span key={i} className="bg-orange-500 text-white text-xs font-bold font-arabic px-3 py-1 rounded-full shadow-md">
+                                  {flag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Product Details */}
@@ -311,22 +320,12 @@ export default function MenuSection() {
                             <div className="text-right">
                               <span className="text-2xl font-bold text-gray-800 font-arabic">
                                 {product.sizes && product.sizes.length > 0 ? (
-                                  // Show price range for products with dynamic sizes
-                                  (() => {
-                                    const prices = product.sizes.map(s => s.price).sort((a, b) => a - b)
-                                    return prices[0] === prices[prices.length - 1] ? 
-                                      `${prices[0]} جنيه` : 
-                                      `${prices[0]} - ${prices[prices.length - 1]} جنيه`
-                                  })()
+                                  // Show all prices separated by dashes
+                                  product.sizes.map(s => s.price).join(' - ') + ' جنيه'
                                 ) : product.pricing ? (
-                                  // Show price range for products with old pricing structure
-                                  (() => {
-                                    const prices = [product.pricing.small, product.pricing.medium, product.pricing.large]
-                                      .filter(p => p !== undefined).sort((a, b) => a - b)
-                                    return prices[0] === prices[prices.length - 1] ? 
-                                      `${prices[0]} جنيه` : 
-                                      `${prices[0]} - ${prices[prices.length - 1]} جنيه`
-                                  })()
+                                  // Show all prices for old pricing structure
+                                  [product.pricing.small, product.pricing.medium, product.pricing.large]
+                                    .filter(p => p !== undefined).join(' - ') + ' جنيه'
                                 ) : (
                                   // Fallback to single price
                                   `${product.price} جنيه`
