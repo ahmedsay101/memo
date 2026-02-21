@@ -206,12 +206,12 @@ export default function MenuSection() {
         {/* Category Tabs - Only show if categories exist */}
         {categories.length > 0 && (
           <div className="flex justify-center mb-8 overflow-x-auto">
-            <div className="flex gap-4 bg-white rounded-lg p-2 shadow-sm">
+            <div className="flex gap-1 md:gap-3 bg-white rounded-lg p-1 md:p-2 shadow-sm">
               {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-arabic font-bold transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 rounded-lg font-arabic font-bold transition-all duration-200 whitespace-nowrap text-sm md:text-base ${
                   selectedCategory === category.id
                     ? 'text-white'
                     : 'text-gray-600 hover:text-teal-600 hover:bg-gray-50'
@@ -220,7 +220,7 @@ export default function MenuSection() {
                   backgroundColor: selectedCategory === category.id ? '#FF8500' : 'transparent'
                 }}
               >
-                <span className="text-lg">{category.icon}</span>
+                <span className="text-base md:text-lg">{category.icon}</span>
                 <span>{category.name}</span>
               </button>
             ))}
