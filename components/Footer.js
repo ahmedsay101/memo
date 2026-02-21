@@ -6,15 +6,29 @@ const fallbackBranches = [
   {
     title: "فرع الحلو",
     address: "ش الحلو مع علي بك تحت مستشفى الشروق",
+    location: "https://maps.google.com/maps/search/Memo's%20Pizza/@30.79633009,31.00393401,17z?hl=en"
   },
   {
     title: "فرع الإستاد",
     address: "ش الاستاد بجوار مستشفى الكنانه",
+    location: "https://maps.google.com/?q=30.816591,30.992641"
   }
 ]
 
+const defaultWorkingHours = {
+  daily: {
+    label: "يومياً",
+    hours: "من 3:00 - ص 10:00"
+  },
+  lastOrder: {
+    label: "طلب (Last Order) حتى",
+    hours: "2:00 ص"
+  }
+}
+
 export default function Footer() {
   const [branches, setBranches] = useState(fallbackBranches)
+  const [workingHours, setWorkingHours] = useState(defaultWorkingHours)
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -30,7 +44,23 @@ export default function Footer() {
         console.error('Error fetching branches:', error)
       }
     }
+
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.settings.workingHours) {
+            setWorkingHours(data.settings.workingHours)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      }
+    }
+
     fetchBranches()
+    fetchSettings()
   }, [])
 
   return (
@@ -103,7 +133,14 @@ export default function Footer() {
               {branches.map((branch, index) => (
                 <div key={index}>
                   <p className="font-semibold">{branch.title}</p>
-                  <p>{branch.address}</p>
+                  <a 
+                    href={branch.location} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-teal-600 transition-colors cursor-pointer hover:underline block"
+                  >
+                    {branch.address}
+                  </a>
                 </div>
               ))}
             </div>
@@ -114,12 +151,12 @@ export default function Footer() {
             <h3 className="text-lg font-bold text-gray-800 font-arabic mb-4">مواعيد العمل</h3>
             <div className="space-y-2 font-arabic text-gray-600 text-sm">
               <div>
-                <p className="font-semibold">يومياً</p>
-                <p>من 3:00 - ص 10:00</p>
+                <p className="font-semibold">{workingHours.daily.label}</p>
+                <p>{workingHours.daily.hours}</p>
               </div>
               <div>
-                <p className="font-semibold">طلب (Last Order) حتى</p>
-                <p>2:00 ص</p>
+                <p className="font-semibold">{workingHours.lastOrder.label}</p>
+                <p>{workingHours.lastOrder.hours}</p>
               </div>
             </div>
           </div>
@@ -138,7 +175,7 @@ export default function Footer() {
             </div>
 
             <div className="flex space-x-4 space-x-reverse mb-4 md:mb-0">
-              <a href="#" className="w-10 h-10 flex items-center justify-center">
+              <a href="#" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center">
                 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="0.5" y="0.5" width="59" height="59" rx="29.5" stroke="#E6E6E6"/>
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M18.8398 41.2602L20.4113 35.5231C19.4418 33.8442 18.932 31.9391 18.9326 29.9878C18.9355 23.8832 23.9032 18.9167 30.0083 18.9167C32.9711 18.9179 35.7513 20.0712 37.8425 22.1636C39.9332 24.2566 41.0847 27.0379 41.0835 29.9966C41.0812 36.1012 36.1123 41.0682 30.0083 41.0682H30.0037C28.1504 41.0677 26.3287 40.6027 24.7111 39.7202L18.8398 41.2602Z" fill="#6C6C6C"/>
@@ -148,13 +185,13 @@ export default function Footer() {
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M27.239 25.3595C27.0319 24.8987 26.8137 24.8894 26.616 24.8812C26.4544 24.8742 26.2701 24.8748 26.0857 24.8748C25.9014 24.8748 25.6016 24.9442 25.3478 25.2213C25.0941 25.4984 24.3789 26.1674 24.3789 27.5289C24.3789 28.8904 25.3706 30.2064 25.5088 30.3908C25.6471 30.5751 27.4233 33.4585 30.2362 34.568C32.5736 35.4897 33.0496 35.3065 33.5571 35.2604C34.0646 35.2144 35.1945 34.5914 35.4249 33.945C35.6553 33.2987 35.6553 32.7451 35.5865 32.6296C35.5171 32.5141 35.3327 32.4453 35.0562 32.3064C34.7797 32.1676 33.4188 31.4985 33.1651 31.4064C32.9113 31.3142 32.727 31.2681 32.5421 31.5452C32.3577 31.8217 31.8275 32.4453 31.6659 32.6296C31.5043 32.8145 31.3427 32.8379 31.0662 32.699C30.7897 32.5602 29.8984 32.2685 28.8408 31.3259C28.0183 30.5926 27.463 29.6867 27.3014 29.4096C27.1398 29.1331 27.2839 28.9832 27.4227 28.8449C27.547 28.7207 27.6992 28.5218 27.8381 28.3602C27.9763 28.1986 28.0224 28.0831 28.1146 27.8988C28.2067 27.7139 28.1607 27.5523 28.0912 27.414C28.023 27.2752 27.4852 25.9067 27.239 25.3595Z" fill="#3A3A3A"/>
                 </svg>
               </a>
-              <a href="#" className="w-10 h-10 flex items-center justify-center mx-4">
+              <a href="https://www.facebook.com/MemosPizzaEg/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center mx-4">
                 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="0.5" y="0.5" width="59" height="59" rx="29.5" stroke="#E6E6E6"/>
                   <path d="M37.5 18C38.7396 18 39.7995 18.4401 40.6797 19.3203C41.5599 20.2005 42 21.2604 42 22.5V37.5C42 38.7396 41.5599 39.7995 40.6797 40.6797C39.7995 41.5599 38.7396 42 37.5 42H34.5625V32.7031H37.6719L38.1406 29.0781H34.5625V26.7656C34.5625 26.1823 34.6849 25.7448 34.9297 25.4531C35.1745 25.1615 35.651 25.0156 36.3594 25.0156L38.2656 25V21.7656C37.6094 21.6719 36.6823 21.625 35.4844 21.625C34.0677 21.625 32.9349 22.0417 32.0859 22.875C31.237 23.7083 30.8125 24.8854 30.8125 26.4062V29.0781H27.6875V32.7031H30.8125V42H22.5C21.2604 42 20.2005 41.5599 19.3203 40.6797C18.4401 39.7995 18 38.7396 18 37.5V22.5C18 21.2604 18.4401 20.2005 19.3203 19.3203C20.2005 18.4401 21.2604 18 22.5 18H37.5Z" fill="#3A3A3A"/>
                 </svg>
               </a>
-              <a href="#" className="w-10 h-10 flex items-center justify-center">
+              <a href="https://www.instagram.com/memo_s_pizza?igsh=MWpuZG5jMzhza2Riag==" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center">
                 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="0.5" y="0.5" width="59" height="59" rx="29.5" stroke="#E6E6E6"/>
                   <g clip-path="url(#clip0_3256_24684)">

@@ -9,7 +9,8 @@ const fallbackLocations = [
     address: "ش الحلو مع علي بك تحت مستشفى الشروق",
     phone: "15596",
     hours: "يومياً: 10:00 ص - 2:00 ص",
-    mapEmbedUrl: ""
+    mapEmbedUrl: "",
+    location: "https://maps.google.com/maps/search/Memo's%20Pizza/@30.79633009,31.00393401,17z?hl=en"
   },
   {
     id: 2,
@@ -17,7 +18,8 @@ const fallbackLocations = [
     address: "ش الاستاد بجوار مستشفى الكنانه",
     phone: "15596",
     hours: "يومياً: 10:00 ص - 2:00 ص",
-    mapEmbedUrl: ""
+    mapEmbedUrl: "",
+    location: "https://maps.google.com/?q=30.816591,30.992641"
   }
 ]
 
@@ -119,13 +121,18 @@ export default function ContactLocationsSection({
                 <div className="bg-gray-50 p-6 border-t border-gray-200">
                   <div className="space-y-3 mb-6">
                     {/* Address */}
-                    <div className="flex items-center gap-3">
+                    <a 
+                      href={location.location} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 hover:text-teal-600 transition-colors cursor-pointer"
+                    >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="#00A4A6" strokeWidth="2"/>
                         <circle cx="12" cy="10" r="3" stroke="#00A4A6" strokeWidth="2"/>
                       </svg>
-                      <span className="text-gray-700 font-arabic">{location.address}</span>
-                    </div>
+                      <span className="text-gray-700 font-arabic hover:underline">{location.address}</span>
+                    </a>
                     
                     {/* Phone */}
                     <div className="flex items-center gap-3">

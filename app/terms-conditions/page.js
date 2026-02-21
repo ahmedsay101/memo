@@ -22,7 +22,7 @@ export default function TermsConditions() {
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">خدماتنا</h2>
               <ul className="list-disc list-inside space-y-2">
                 <li>نقدم خدمة توصيل الطعام للمنازل والمكاتب</li>
-                <li>نوفر إمكانية الطلب المسبق والحجز</li>
+                <li>نوفر إمكانية الطلب المسبق</li>
                 <li>جميع منتجاتنا تُحضر طازجة يومياً</li>
                 <li>نحافظ على أعلى معايير الجودة والنظافة</li>
               </ul>
@@ -33,15 +33,14 @@ export default function TermsConditions() {
               <ul className="list-disc list-inside space-y-2">
                 <li>يجب تأكيد الطلب خلال 15 دقيقة من تقديمه</li>
                 <li>الأسعار تشمل ضريبة القيمة المضافة</li>
-                <li>نقبل الدفع نقداً عند الاستلام أو بالبطاقات الائتمانية</li>
-                <li>قد تختلف الأسعار حسب المنطقة ووقت الطلب</li>
+                <li>نقبل الدفع نقداً عند الاستلام أو بالبطاقات الائتمانية في حالة استلام من احد فروعنا فقط</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">سياسة التوصيل</h2>
               <ul className="list-disc list-inside space-y-2">
-                <li>وقت التوصيل المعتاد: 30-45 دقيقة</li>
+                <li>وقت التوصيل المعتاد: 40-60 دقيقة</li>
                 <li>قد يزيد وقت التوصيل في أوقات الذروة</li>
                 <li>رسوم التوصيل تختلف حسب المنطقة</li>
                 <li>نوصل في جميع أنحاء المدينة ضمن نطاق خدمتنا</li>
@@ -61,7 +60,7 @@ export default function TermsConditions() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">حدود المسؤولية</h2>
               <p>
-                شركة ميموز بيتزا غير مسؤولة عن أي أضرار غير مباشرة أو تبعية قد تنتج عن استخدام خدماتنا. 
+                شركة ميموز بيتزا غير مسؤولة عن أي أضرار غير مباشرة أو سوء تخزين للمنتج بعد الاستلام. 
                 مسؤوليتنا محدودة بقيمة الطلب المقدم.
               </p>
             </section>
@@ -80,8 +79,8 @@ export default function TermsConditions() {
                 لأي استفسارات حول هذه الشروط والأحكام، يرجى التواصل معنا عبر:
               </p>
               <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>الهاتف: 123-456-789</li>
-                <li>البريد الإلكتروني: support@memos-pizza.com</li>
+                <li>الهاتف: 00201020207615</li>
+                <li>البريد الإلكتروني: Memospizza37@gmail.com</li>
                 <li>العنوان: أحد فروعنا المذكورة في الصفحة الرئيسية</li>
               </ul>
             </section>

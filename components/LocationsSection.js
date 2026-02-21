@@ -7,13 +7,15 @@ const fallbackLocations = [
     title: "فرع الحلو",
     address: "ش الحلو مع علي بك تحت مستشفى الشروق",
     phone: "15596",
-    hours: "يومياً: 10:00 ص - 2:00 ص"
+    hours: "يومياً: 10:00 ص - 2:00 ص",
+    location: "https://maps.google.com/maps/search/Memo's%20Pizza/@30.79633009,31.00393401,17z?hl=en"
   },
   {
     title: "فرع الإستاد",
     address: "ش الاستاد بجوار مستشفى الكنانه",
     phone: "15596",
-    hours: "يومياً: 10:00 ص - 2:00 ص"
+    hours: "يومياً: 10:00 ص - 2:00 ص",
+    location: "https://maps.google.com/?q=30.816591,30.992641"
   }
 ]
 
@@ -72,14 +74,19 @@ export default function LocationsSection() {
                 </h3>
 
                 {/* Address */}
-                <div className="flex items-center justify-center mb-3 text-gray-700">
+                <a 
+                  href={location.location} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center mb-3 text-gray-700 hover:text-teal-600 transition-colors cursor-pointer"
+                >
                   <svg className="w-5 h-5 ml-2 flex-shrink-0" style={{ color: '#009495' }} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                   </svg>
-                  <p className="font-arabic text-sm leading-relaxed">
+                  <p className="font-arabic text-sm leading-relaxed hover:underline">
                     {location.address}
                   </p>
-                </div>
+                </a>
 
                 {/* Phone */}
                 <div className="flex items-center justify-center mb-3 text-gray-700">

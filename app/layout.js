@@ -2,7 +2,7 @@ import './globals.css'
 import ClientProviders from '@/components/ClientProviders'
 
 export const metadata = {
-  title: 'ميموز بيتزا - أفضل بيتزا في المدينة',
+  title: 'ميموز بيتزا - اختيارك رقم واحد في البيتزا',
   description: 'استمتع بأفضل أنواع البيتزا مع خدمة توصيل سريعة وجودة عالية من ميموز بيتزا',
 }
 

@@ -19,17 +19,17 @@ export default function PoliciesPage() {
                 <div className="bg-orange-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 mb-2">إلغاء الطلب قبل التحضير</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>يمكن إلغاء الطلب مجاناً خلال 5 دقائق من التأكيد</li>
-                    <li>سيتم رد المبلغ كاملاً في حالة الدفع المسبق</li>
-                    <li>يرجى الاتصال فوراً لتجنب رسوم الإلغاء</li>
+                    <li>يمكن الغاء الطلب عن طريق التواصل تليفونيا بخدمة العملاء</li>
+                    <li>يمكن الغاء الاوردر خلال 2 دقيقة من التأكيد</li>
+                    <li>يرجي الاتصال فورا لتجنب رسوم الالغاء</li>
                   </ul>
                 </div>
                 
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 mb-2">إلغاء الطلب أثناء التحضير</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>رسوم إلغاء 25% من قيمة الطلب</li>
-                    <li>يتم رد 75% من المبلغ المدفوع</li>
+                    <li>رسوم إلغاء 75% من قيمة الطلب</li>
+                    <li>يتم رد 25% من المبلغ المدفوع</li>
                     <li>وقت الإلغاء: حتى 15 دقيقة من بداية التحضير</li>
                   </ul>
                 </div>
@@ -56,7 +56,7 @@ export default function PoliciesPage() {
                   <ul className="list-disc list-inside space-y-1 text-sm">
                     <li>خطأ في الطلب من جانبنا</li>
                     <li>جودة الطعام غير مرضية</li>
-                    <li>تأخير في التوصيل أكثر من 60 دقيقة</li>
+                    <li>تأخير في التوصيل اكثر من الوقت المحدد في سياسات التوصيل</li>
                     <li>الطعام وصل بارد أو فاسد</li>
                   </ul>
                 </div>
@@ -92,10 +92,9 @@ export default function PoliciesPage() {
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 mb-2">أوقات التوصيل</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>الوقت العادي: 30-45 دقيقة</li>
-                    <li>أوقات الذروة: 45-60 دقيقة</li>
-                    <li>الطلبات المخصصة: 60-90 دقيقة</li>
-                    <li>الطلبات الكبيرة (+10 منتجات): 60-75 دقيقة</li>
+                    <li>الوقت العادي: 40-60 دقيقة</li>
+                    <li>اوقات الذروة : 60-90 دقيقة</li>
+                    <li>الطلبات المخصصة : 90-120 دقيقة</li>
                   </ul>
                 </div>
                 
@@ -119,8 +118,7 @@ export default function PoliciesPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>خدمة العملاء:</strong> 123-456-789</p>
-                    <p><strong>واتساب:</strong> 123-456-789</p>
+                    <p><strong>خدمة العملاء:</strong>00201020207615</p>
                   </div>
                   <div>
                     <p><strong>البريد الإلكتروني:</strong> support@memos-pizza.com</p>

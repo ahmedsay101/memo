@@ -173,8 +173,7 @@ export default function PrivacyPolicy() {
                 <p className="mb-4">لأي استفسارات حول سياسة الخصوصية أو لممارسة حقوقكم، يرجى التواصل معنا عبر:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>الهاتف:</strong> 123-456-789</p>
-                    <p><strong>واتساب:</strong> 123-456-789</p>
+                    <p><strong>الهاتف:</strong> 00201020207615</p>
                   </div>
                   <div>
                     <p><strong>البريد الإلكتروني:</strong> support@memos-pizza.com</p>
