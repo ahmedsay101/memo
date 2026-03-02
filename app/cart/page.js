@@ -859,7 +859,7 @@ export default function CartPage() {
                         }`}
                         onClick={() => setOrderData({...orderData, paymentMethod: 'card'})}
                       >
-                        💳 بطاقة بنكية
+                        💳 ادفع بالفيزا، ماستركارد، ميزة
                       </button>
                       <button 
                         className={`flex-1 py-3 px-6 text-center font-arabic font-semibold rounded-t-lg transition-colors ${
@@ -880,7 +880,7 @@ export default function CartPage() {
                         <div className="text-center py-8">
                           <div className="text-6xl mb-4">💳</div>
                           <h3 className="text-2xl font-bold text-gray-800 font-arabic mb-3">
-                            الدفع بالبطاقة البنكية
+                            ادفع بالفيزا، ماستركارد، أو ميزة
                           </h3>
                           <p className="text-gray-600 font-arabic text-lg">
                             ستتم إعادة توجيهك لصفحة الدفع الآمنة
@@ -897,7 +897,7 @@ export default function CartPage() {
 
                         {/* Supported Cards */}
                         <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-arabic font-semibold text-gray-700 mb-3 text-center">البطاقات المقبولة:</h4>
+                          <h4 className="font-arabic font-semibold text-gray-700 mb-3 text-center">البطاقات المدعومة:</h4>
                           <div className="flex items-center justify-center gap-4 flex-wrap">
                             <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
                               <div className="w-8 h-5 bg-blue-600 rounded flex items-center justify-center">
@@ -1119,7 +1119,7 @@ export default function CartPage() {
                         <span className="font-arabic text-sm text-gray-600">طريقة الدفع:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-arabic text-sm font-semibold">
-                            {orderData.paymentMethod === 'card' ? 'بطاقة بنكية' : 'كاش عند الاستلام'}
+                            {orderData.paymentMethod === 'card' ? 'فيزا، ماستركارد، ميزة' : 'كاش عند الاستلام'}
                           </span>
                           <span className="text-lg">
                             {orderData.paymentMethod === 'card' ? '💳' : '💵'}
