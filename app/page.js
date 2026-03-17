@@ -21,14 +21,14 @@ export default function Home() {
 
       {/* Floating Hotline Button */}
       <a
-        href="tel:15596"
+        href="tel:00201020207615"
         className="fixed bottom-6 left-6 z-50 flex items-center gap-2 shadow-[0_8px_25px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer rounded-full overflow-hidden px-3 py-2"
         style={{ background: '#00a7a9' }}
-        aria-label="اتصل بالخط الساخن 15596"
+        aria-label="اتصل بالخط الساخن 00201020207615"
       >
         <img 
           src="/images/hotline.png" 
-          alt="15596"
+          alt="00201020207615"
           className="w-auto h-12 object-contain"
         />
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6 flex-shrink-0">

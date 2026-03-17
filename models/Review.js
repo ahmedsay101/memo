@@ -32,8 +32,4 @@ const ReviewSchema = new mongoose.Schema({
 ReviewSchema.index({ order: 1 })
 ReviewSchema.index({ isActive: 1 })
 
-if (mongoose.models.Review) {
-  delete mongoose.models.Review
-}
-
-export default mongoose.model('Review', ReviewSchema)
+export default mongoose.models.Review || mongoose.model('Review', ReviewSchema)

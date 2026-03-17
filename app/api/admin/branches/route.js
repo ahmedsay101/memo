@@ -60,7 +60,7 @@ export async function POST(request) {
     const branch = await Branch.create({
       title: body.title,
       address: body.address,
-      phone: body.phone || '15596',
+      phone: body.phone || '00201020207615',
       hours: body.hours || 'يومياً: 10:00 ص - 2:00 ص',
       order,
       isActive: body.isActive !== undefined ? body.isActive : true

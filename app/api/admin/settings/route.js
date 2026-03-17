@@ -25,8 +25,8 @@ export async function GET() {
         }
       },
       contactInfo: {
-        phone: "15596",
-        email: "support@memos-pizza.com"
+        phone: "00201020207615",
+        email: "Memospizza37@gmail.com"
       }
     }
     

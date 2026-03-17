@@ -76,7 +76,42 @@ export default function NewOffersSection() {
   const onMouseUp = () => { if (isDragging.current) { isDragging.current = false; handleSwipe() } }
   const onMouseLeave = () => { if (isDragging.current) { isDragging.current = false; handleSwipe() } }
 
-  if (loading || slides.length === 0) return null
+  if (loading) {
+    return (
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto" dir="rtl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 font-arabic mb-4">
+              جديد ميموز
+            </h2>
+            <div className="w-16 h-1 mx-auto" style={{ backgroundColor: '#009495' }}></div>
+          </div>
+          <div className="text-center py-8">
+            <p className="text-gray-600 font-arabic">جاري تحميل العروض...</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (slides.length === 0) {
+    return (
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto" dir="rtl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 font-arabic mb-4">
+              جديد ميموز
+            </h2>
+            <div className="w-16 h-1 mx-auto" style={{ backgroundColor: '#009495' }}></div>
+          </div>
+          <div className="text-center py-8">
+            <p className="text-gray-600 font-arabic">لا توجد عروض متاحة حالياً</p>
+            <p className="text-xs text-gray-400 mt-2">تحقق من أن السلايدر مفعل في لوحة التحكم</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-16 px-4 bg-white">

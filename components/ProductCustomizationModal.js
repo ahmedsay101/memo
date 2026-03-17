@@ -92,15 +92,21 @@ export default function ProductCustomizationModal({
           crust: 'regular'
         })
         
-        // Fetch addons for pizzas
-        const addonsResponse = await fetch(`/api/addons?category=topping`)
+        // Fetch all available addons
+        const addonsResponse = await fetch(`/api/addons`)
         const addonsData = await addonsResponse.json()
         
         if (addonsData.success) {
           setAddons(addonsData.addons || [])
         }
       } else {
-        // Other products only get size options
+        // Other products - fetch all available addons
+        const addonsResponse = await fetch(`/api/addons`)
+        const addonsData = await addonsResponse.json()
+        if (addonsData.success) {
+          setAddons(addonsData.addons || [])
+        }
+
         const sizeVariants = []
         
         if (product.sizes && product.sizes.length > 0) {
@@ -132,8 +138,6 @@ export default function ProductCustomizationModal({
           size: 'small'
         })
         
-        // No addons for non-pizza products
-        setAddons([])
       }
       
     } catch (error) {
@@ -166,26 +170,29 @@ export default function ProductCustomizationModal({
 
   const handleAddonToggle = (addonId, sizeId = null) => {
     setSelectedAddons(prev => {
-      const existingIndex = prev.findIndex(item => 
+      const existingIndex = prev.findIndex(item =>
         typeof item === 'string' ? item === addonId : item.addonId === addonId
       )
-      
-      if (existingIndex !== -1) {
-        // Remove addon
-        return prev.filter((_, index) => index !== existingIndex)
-      } else {
-        // Add addon with size selection
-        const addon = addons.find(a => a._id === addonId)
-        if (addon && addon.sizes && addon.sizes.length > 0) {
-          // Addon has sizes - use provided sizeId or default
-          const defaultSize = addon.sizes.find(s => s.isDefault) || addon.sizes[0]
-          const selectedSizeId = sizeId || defaultSize.name.toLowerCase()
-          return [...prev, { addonId, sizeId: selectedSizeId }]
-        } else {
-          // Addon has no sizes or old format - store as string for backward compatibility
-          return [...prev, addonId]
-        }
+
+      // Already selected + new size clicked → update size only, don't remove
+      if (existingIndex !== -1 && sizeId !== null) {
+        return prev.map((item, i) =>
+          i === existingIndex ? { addonId, sizeId } : item
+        )
       }
+
+      // Already selected + no size → deselect (toggle off)
+      if (existingIndex !== -1) {
+        return prev.filter((_, i) => i !== existingIndex)
+      }
+
+      // Not yet selected → add
+      const addon = addons.find(a => a._id === addonId)
+      if (addon && addon.sizes && addon.sizes.length > 0) {
+        const defaultSize = addon.sizes.find(s => s.isDefault) || addon.sizes[0]
+        return [...prev, { addonId, sizeId: sizeId || defaultSize.name.toLowerCase() }]
+      }
+      return [...prev, addonId]
     })
   }
 
@@ -242,31 +249,23 @@ export default function ProductCustomizationModal({
         })
       }
       
-      // Add addon prices (only for pizza products)
-      if (product.categoryName === 'بيتزا') {
-        selectedAddons.forEach(addonSelection => {
-          if (typeof addonSelection === 'string') {
-            // Old format - just addon ID
-            const addon = addons.find(a => a._id === addonSelection)
-            if (addon) {
+      // Add addon prices for all product types
+      selectedAddons.forEach(addonSelection => {
+        if (typeof addonSelection === 'string') {
+          const addon = addons.find(a => a._id === addonSelection)
+          if (addon) total += addon.price || 0
+        } else {
+          const addon = addons.find(a => a._id === addonSelection.addonId)
+          if (addon) {
+            if (addon.sizes && addon.sizes.length > 0) {
+              const selectedSize = addon.sizes.find(s => s.name.toLowerCase() === addonSelection.sizeId)
+              total += selectedSize ? selectedSize.price : addon.sizes[0].price
+            } else {
               total += addon.price || 0
             }
-          } else {
-            // New format - addon with size selection
-            const addon = addons.find(a => a._id === addonSelection.addonId)
-            if (addon) {
-              if (addon.sizes && addon.sizes.length > 0) {
-                // Find selected size price
-                const selectedSize = addon.sizes.find(s => s.name.toLowerCase() === addonSelection.sizeId)
-                total += selectedSize ? selectedSize.price : addon.sizes[0].price
-              } else {
-                // Fallback to single price
-                total += addon.price || 0
-              }
-            }
           }
-        })
-      }
+        }
+      })
     }
     
     return total * quantity
@@ -530,118 +529,113 @@ export default function ProductCustomizationModal({
     return selection ? selection.sizeId : null
   }
 
-  const renderToppingsSection = () => {
-    const toppings = addons.filter(addon => addon.category === 'topping')
-    if (toppings.length === 0) return null
-    
+  // Generic function to render addon sections for any category
+  const renderAddonSection = (categoryType, titleArabic, emoji) => {
+    const categoryAddons = addons.filter(addon => addon.category === categoryType)
+    if (categoryAddons.length === 0) return null
+
     return (
       <div className="mb-6">
-        <h4 className="font-arabic font-bold text-lg mb-3 text-right">الإضافات</h4>
-        <p className="font-arabic text-sm text-gray-600 mb-3 text-right">يمكنك اختيار أكثر من واحد</p>
-        <div className="grid grid-cols-3 gap-3">
-          {toppings.map((topping) => (
-            <div key={topping._id} className={`relative border rounded-xl transition-all ${
-              isAddonSelected(topping._id)
-                ? 'border-orange-500 bg-orange-50 shadow-md' 
-                : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-            }`}>
-              <label 
-                className="flex flex-col items-center p-3 cursor-pointer"
-                onClick={() => handleAddonToggle(topping._id)}
+        <h4 className="font-arabic font-bold text-lg mb-2 text-right">{titleArabic}</h4>
+        <p className="font-arabic text-xs text-gray-500 mb-3 text-right">يمكنك اختيار أكثر من واحد</p>
+        <div className="space-y-2">
+          {categoryAddons.map((addon) => {
+            const selected = isAddonSelected(addon._id)
+            const selectedSizeId = getSelectedAddonSize(addon._id)
+            const hasMultipleSizes = addon.sizes && addon.sizes.length > 1
+            const hasSizes = addon.sizes && addon.sizes.length > 0
+
+            return (
+              <div
+                key={addon._id}
+                className={`border rounded-xl transition-all overflow-hidden ${
+                  selected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'
+                }`}
               >
-                <input
-                  type="checkbox"
-                  checked={isAddonSelected(topping._id)}
-                  onChange={() => handleAddonToggle(topping._id)}
-                  className="sr-only"
-                />
-                
-                {/* Image */}
-                <div className="w-16 h-16 mb-2 relative overflow-hidden rounded-lg">
-                  {topping.image ? (
-                    <Image 
-                      src={topping.image} 
-                      alt={topping.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                      <span className="text-2xl">🍕</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Name */}
-                <span className="font-arabic text-sm font-medium text-center text-gray-800 mb-1">
-                  {topping.name}
-                </span>
-                
-                {/* Price or Size Options */}
-                {topping.sizes && topping.sizes.length > 0 ? (
-                  <div className="text-xs text-center">
-                    {topping.sizes.length === 1 ? (
-                      <span className="font-arabic font-bold text-orange-600">
-                        +{topping.sizes[0].price} جنيه
-                      </span>
+                {/* Main row — clicking toggles the addon (for all types) */}
+                <div
+                  className="flex items-center gap-3 p-3 cursor-pointer"
+                  onClick={() => handleAddonToggle(addon._id)}
+                >
+                  {/* Image */}
+                  <div className="w-12 h-12 flex-shrink-0 relative overflow-hidden rounded-lg">
+                    {addon.image ? (
+                      <Image src={addon.image} alt={addon.name} fill className="object-cover" />
                     ) : (
-                      <span className="font-arabic font-bold text-orange-600">
-                        +{Math.min(...topping.sizes.map(s => s.price))} - {Math.max(...topping.sizes.map(s => s.price))} جنيه
-                      </span>
+                      <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center rounded-lg">
+                        <span className="text-xl">{emoji}</span>
+                      </div>
                     )}
                   </div>
-                ) : (
-                  <span className="font-arabic text-xs font-bold text-orange-600">
-                    +EGP {topping.price}.00
-                  </span>
-                )}
-              </label>
-              
-              {/* Size Selection (if addon has multiple sizes and is selected) */}
-              {isAddonSelected(topping._id) && topping.sizes && topping.sizes.length > 1 && (
-                <div className="border-t border-gray-200 p-2 bg-gray-50">
-                  <div className="space-y-1">
-                    {topping.sizes.map((size) => (
-                      <label 
-                        key={size.name}
-                        className={`flex items-center justify-between text-xs cursor-pointer p-1 rounded ${
-                          getSelectedAddonSize(topping._id) === size.name.toLowerCase()
-                            ? 'bg-orange-200' : 'hover:bg-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="radio"
-                            name={`addon_size_${topping._id}`}
-                            checked={getSelectedAddonSize(topping._id) === size.name.toLowerCase()}
-                            onChange={() => handleAddonToggle(topping._id, size.name.toLowerCase())}
-                            className="w-3 h-3"
-                          />
-                          <span className="font-arabic">{size.name}</span>
-                        </div>
-                        <span className="font-arabic font-bold text-orange-600">
-                          +{size.price} جنيه
-                        </span>
-                      </label>
-                    ))}
+
+                  {/* Name & price */}
+                  <div className="flex-1 text-right">
+                    <p className="font-arabic font-semibold text-gray-800 text-sm">{addon.name}</p>
+                    {hasSizes && !hasMultipleSizes && (
+                      <p className="font-arabic text-xs text-orange-600 font-bold mt-0.5">+{addon.sizes[0].price} جنيه</p>
+                    )}
+                    {!hasSizes && (
+                      <p className="font-arabic text-xs text-orange-600 font-bold mt-0.5">+{addon.price} جنيه</p>
+                    )}
+                    {hasMultipleSizes && !selected && (
+                      <p className="font-arabic text-xs text-gray-500 mt-0.5">اختر الحجم بعد الإضافة</p>
+                    )}
+                  </div>
+
+                  {/* Checkbox indicator */}
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                    selected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                  }`}>
+                    {selected && (
+                      <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
                   </div>
                 </div>
-              )}
-              
-              {/* Selection Indicator */}
-              {selectedAddons.includes(topping._id) && (
-                <div className="absolute top-2 right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center shadow-sm">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          ))}
+
+                {/* Size pills — shown when addon is selected and has multiple sizes */}
+                {selected && hasMultipleSizes && (
+                  <div className="px-3 pb-3 border-t border-orange-200 pt-2">
+                    <p className="font-arabic text-xs text-gray-500 text-right mb-2">اختر الحجم:</p>
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      {addon.sizes.map((size) => {
+                        const active = selectedSizeId === size.name.toLowerCase()
+                        return (
+                          <button
+                            key={size.name}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAddonToggle(addon._id, size.name.toLowerCase())
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-arabic font-bold border transition-all ${
+                              active
+                                ? 'bg-orange-500 text-white border-orange-500'
+                                : 'bg-white text-gray-600 border-gray-300 hover:border-orange-400 hover:text-orange-500'
+                            }`}
+                          >
+                            {size.name}&nbsp;·&nbsp;{size.price} جنيه
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     )
   }
+
+  // Specific render functions for each category
+  const renderToppingsSection = () => renderAddonSection('topping', 'الإضافات', '🍕')
+  const renderDrinksSection = () => renderAddonSection('drink', 'المشروبات', '🥤')
+  const renderSidesSection = () => renderAddonSection('side', 'الأطباق الجانبية', '🍟')
+  const renderDessertsSection = () => renderAddonSection('dessert', 'الحلويات', '🍰')
+  const renderSaucesSection = () => renderAddonSection('sauce', 'الصلصات', '🥫')
 
 
 
@@ -722,6 +716,10 @@ export default function ProductCustomizationModal({
                   {renderSizeSection()}
                   {renderCrustSection()}
                   {renderToppingsSection()}
+                  {renderDrinksSection()}
+                  {renderSidesSection()}
+                  {renderDessertsSection()}
+                  {renderSaucesSection()}
                 </>
               )}
 
@@ -731,13 +729,22 @@ export default function ProductCustomizationModal({
                   {renderSizeSection()}
                   {renderCrustSection()}
                   {renderToppingsSection()}
+                  {renderDrinksSection()}
+                  {renderSidesSection()}
+                  {renderDessertsSection()}
+                  {renderSaucesSection()}
                 </>
               )}
 
-              {/* Version 3: Other Products Modal (only size) */}
+              {/* Version 3: Other Products Modal (size + addons) */}
               {product.productType !== 'half-half' && product.categoryName !== 'بيتزا' && (
                 <>
                   {renderSizeSection()}
+                  {renderToppingsSection()}
+                  {renderDrinksSection()}
+                  {renderSidesSection()}
+                  {renderDessertsSection()}
+                  {renderSaucesSection()}
                 </>
               )}
 

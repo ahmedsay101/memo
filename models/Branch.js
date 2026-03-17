@@ -13,7 +13,7 @@ const BranchSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    default: '15596',
+    default: '00201020207615',
     trim: true
   },
   hours: {
@@ -36,8 +36,4 @@ const BranchSchema = new mongoose.Schema({
 BranchSchema.index({ order: 1 })
 BranchSchema.index({ isActive: 1 })
 
-if (mongoose.models.Branch) {
-  delete mongoose.models.Branch
-}
-
-export default mongoose.model('Branch', BranchSchema)
+export default mongoose.models.Branch || mongoose.model('Branch', BranchSchema)

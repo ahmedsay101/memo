@@ -6,7 +6,8 @@ import Slide from '../../../models/Slide'
 export async function GET() {
   try {
     await dbConnect()
-    const slides = await Slide.find({ isActive: true }).sort({ order: 1 })
+    // Use $ne: false so older documents without the isActive field are also returned
+    const slides = await Slide.find({ isActive: { $ne: false } }).sort({ order: 1 })
     const formattedSlides = slides.map(s => ({
       id: s._id.toString(),
       title: s.title,
@@ -16,6 +17,6 @@ export async function GET() {
     return NextResponse.json({ success: true, slides: formattedSlides })
   } catch (error) {
     console.error('Error fetching slides:', error)
-    return NextResponse.json({ error: 'حدث خطأ في جلب السلايدات' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'حدث خطأ في جلب السلايدات' }, { status: 500 })
   }
 }

@@ -163,7 +163,7 @@ export default function ProductsPage() {
         setAddonFormData({
           name: '',
           category: 'topping',
-          price: 0,
+          sizes: [{ name: 'عادي', price: 0, isDefault: true }],
           image: '',
           imageFile: null,
           description: '',
@@ -201,7 +201,7 @@ export default function ProductsPage() {
       imageFile: null,
       description: addon.description || '',
       applicableCategories: addon.applicableCategories || ['pizza'],
-      isAvailable: addon.isAvailable
+      isAvailable: addon.available
     })
     setShowAddAddonModal(true)
   }
@@ -439,8 +439,9 @@ export default function ProductsPage() {
                   setAddonFormData({
                     name: '',
                     category: 'topping',
-                    price: 0,
+                    sizes: [{ name: 'عادي', price: 0, isDefault: true }],
                     image: '',
+                    imageFile: null,
                     description: '',
                     applicableCategories: ['pizza'],
                     isAvailable: true
@@ -690,9 +691,9 @@ export default function ProductsPage() {
                     
                     <div className="flex items-center justify-between mb-3">
                       <span className={`px-2 py-1 rounded text-xs ${
-                        addon.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        addon.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {addon.isAvailable ? 'متاح' : 'غير متاح'}
+                        {addon.available ? 'متاح' : 'غير متاح'}
                       </span>
                     </div>
                     

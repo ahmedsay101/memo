@@ -1,6 +1,38 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+
+const defaultWorkingHours = {
+  daily: {
+    label: "يومياً",
+    hours: "من 3:00 - ص 10:00"
+  },
+  lastOrder: {
+    label: "طلب (Last Order) حتى",
+    hours: "2:00 ص"
+  }
+}
+
 export default function PoliciesPage() {
+  const [workingHours, setWorkingHours] = useState(defaultWorkingHours)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.settings.workingHours) {
+            setWorkingHours(data.settings.workingHours)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      }
+    }
+
+    fetchSettings()
+  }, [])
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4" dir="rtl">
       <div className="max-w-4xl mx-auto">
@@ -118,11 +150,11 @@ export default function PoliciesPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>خدمة العملاء:</strong>00201020207615</p>
+                    <p><strong>خدمة العملاء:</strong> 00201020207615</p>
                   </div>
                   <div>
-                    <p><strong>البريد الإلكتروني:</strong> support@memos-pizza.com</p>
-                    <p><strong>ساعات العمل:</strong> يومياً من 3:00 ص إلى 2:00 ص</p>
+                    <p><strong>البريد الإلكتروني:</strong> Memospizza37@gmail.com</p>
+                    <p><strong>ساعات العمل:</strong> {workingHours.daily.label} {workingHours.daily.hours} - {workingHours.lastOrder.label} {workingHours.lastOrder.hours}</p>
                   </div>
                 </div>
               </div>

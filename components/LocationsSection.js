@@ -6,14 +6,14 @@ const fallbackLocations = [
   {
     title: "فرع الحلو",
     address: "ش الحلو مع علي بك تحت مستشفى الشروق",
-    phone: "15596",
+    phone: "00201020207615",
     hours: "يومياً: 10:00 ص - 2:00 ص",
     location: "https://maps.google.com/maps/search/Memo's%20Pizza/@30.79633009,31.00393401,17z?hl=en"
   },
   {
     title: "فرع الإستاد",
     address: "ش الاستاد بجوار مستشفى الكنانه",
-    phone: "15596",
+    phone: "00201020207615",
     hours: "يومياً: 10:00 ص - 2:00 ص",
     location: "https://maps.google.com/?q=30.816591,30.992641"
   }

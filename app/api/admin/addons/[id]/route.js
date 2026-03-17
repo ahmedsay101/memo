@@ -52,7 +52,7 @@ export async function PUT(request, { params }) {
       image: image?.trim() || '',
       description: description?.trim() || '',
       applicableCategories: applicableCategories || ['pizza'],
-      isAvailable: isAvailable !== false
+      available: isAvailable !== false
     }
 
     // Handle pricing structure

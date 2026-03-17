@@ -92,9 +92,4 @@ const ProductSchema = new mongoose.Schema({
 ProductSchema.index({ category: 1, available: 1 })
 ProductSchema.index({ name: 'text', description: 'text' })
 
-// Clear existing model if it exists to avoid schema conflicts
-if (mongoose.models.Product) {
-  delete mongoose.models.Product
-}
-
-export default mongoose.model('Product', ProductSchema)
+export default mongoose.models.Product || mongoose.model('Product', ProductSchema)

@@ -176,7 +176,7 @@ export default function PrivacyPolicy() {
                     <p><strong>الهاتف:</strong> 00201020207615</p>
                   </div>
                   <div>
-                    <p><strong>البريد الإلكتروني:</strong> support@memos-pizza.com</p>
+                    <p><strong>البريد الإلكتروني:</strong> Memospizza37@gmail.com</p>
                     <p><strong>العنوان:</strong> أحد فروعنا المذكورة في الصفحة الرئيسية</p>
                   </div>
                 </div>

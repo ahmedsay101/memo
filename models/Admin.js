@@ -69,9 +69,4 @@ AdminSchema.methods.toJSON = function() {
   return admin
 }
 
-// Clear existing model if it exists to avoid schema conflicts
-if (mongoose.models.Admin) {
-  delete mongoose.models.Admin
-}
-
-export default mongoose.model('Admin', AdminSchema)
+export default mongoose.models.Admin || mongoose.model('Admin', AdminSchema)

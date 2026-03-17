@@ -24,8 +24,4 @@ const SlideSchema = new mongoose.Schema({
 SlideSchema.index({ order: 1 })
 SlideSchema.index({ isActive: 1 })
 
-if (mongoose.models.Slide) {
-  delete mongoose.models.Slide
-}
-
-export default mongoose.model('Slide', SlideSchema)
+export default mongoose.models.Slide || mongoose.model('Slide', SlideSchema)

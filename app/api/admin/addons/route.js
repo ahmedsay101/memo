@@ -70,7 +70,7 @@ export async function POST(request) {
       image: image?.trim() || '',
       description: description?.trim() || '',
       applicableCategories: applicableCategories || ['pizza'],
-      isAvailable: isAvailable !== false
+      available: isAvailable !== false
     }
 
     // Handle pricing structure
