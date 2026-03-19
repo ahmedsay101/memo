@@ -16,6 +16,16 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'memos-pizza.com',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'memos-pizza.com',
+        pathname: '/api/images/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
