@@ -4,6 +4,8 @@ import dbConnect from '../../../../lib/mongodb'
 import Product from '../../../../models/Product'
 import Order from '../../../../models/Order'
 
+export const dynamic = 'force-dynamic'
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production'
 
 export async function GET(request) {

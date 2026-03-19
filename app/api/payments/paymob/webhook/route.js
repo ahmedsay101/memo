@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 const PAYMOB_HMAC_SECRET = process.env.PAYMOB_HMAC_SECRET
 
 // Helper function to verify HMAC signature

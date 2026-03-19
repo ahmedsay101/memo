@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
+export const dynamic = 'force-dynamic'
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production'
 
 const verifyAuth = (request) => {

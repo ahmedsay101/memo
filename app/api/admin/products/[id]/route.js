@@ -4,6 +4,8 @@ import mongoose from 'mongoose'
 import dbConnect from '../../../../../lib/mongodb'
 import Product from '../../../../../models/Product'
 
+export const dynamic = 'force-dynamic'
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production'
 
 const verifyAuth = (request) => {
