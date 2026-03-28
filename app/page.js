@@ -4,6 +4,7 @@ import LocationsSection from '@/components/LocationsSection'
 import NewOffersSection from '@/components/NewOffersSection'
 import CustomerReviewsSection from '@/components/CustomerReviewsSection'
 import MenuSection from '@/components/MenuSection'
+import FlaggedProductsSection from '@/components/FlaggedProductsSection'
 import Footer from '@/components/Footer'
 
 export default function Home() {
@@ -16,15 +17,16 @@ export default function Home() {
         <NewOffersSection />
         <CustomerReviewsSection />
         <MenuSection />
+        <FlaggedProductsSection />
         <Footer />
       </div>
 
       {/* Floating Hotline Button */}
       <a
-        href="tel:00201020207615"
+        href="tel:15596"
         className="fixed bottom-6 left-6 z-50 flex items-center gap-2 shadow-[0_8px_25px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer rounded-full overflow-hidden px-3 py-2"
         style={{ background: '#00a7a9' }}
-        aria-label="اتصل بالخط الساخن 00201020207615"
+        aria-label="اتصل بالخط الساخن 15596"
       >
         <img 
           src="/images/hotline.png" 

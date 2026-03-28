@@ -38,7 +38,7 @@ const AddonSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['topping', 'sauce', 'drink', 'side', 'dessert'],
+    enum: ['topping', 'sauce', 'drink', 'side', 'dessert', 'crust'],
     default: 'topping'
   },
   isVegetarian: {

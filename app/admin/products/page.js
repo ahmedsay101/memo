@@ -678,6 +678,7 @@ export default function ProductsPage() {
                       {addon.category === 'drink' && 'المشروبات'}
                       {addon.category === 'side' && 'الأطباق الجانبية'}
                       {addon.category === 'dessert' && 'الحلويات'}
+                      {addon.category === 'crust' && 'الأطراف'}
                     </p>
                     <p className="text-teal-600 font-bold mb-2">
                       {addon.price} جنيه
@@ -754,6 +755,7 @@ export default function ProductsPage() {
                     <option value="drink">المشروبات</option>
                     <option value="side">الأطباق الجانبية</option>
                     <option value="dessert">الحلويات</option>
+                    <option value="crust">الأطراف</option>
                   </select>
                 </div>
 
@@ -1402,7 +1404,7 @@ function ProductModal({ product, onClose, onSave }) {
               </button>
             </div>
             <div className="flex flex-wrap gap-1 mt-2">
-              {['جديد', 'الأكثر مبيعاً', 'عرض خاص', 'حصري'].map((suggestion) => (
+              {['جديد', 'الأكثر مبيعاً', 'عرض خاص', 'حصري', 'ترشيحات'].map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"

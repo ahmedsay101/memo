@@ -16,6 +16,7 @@ export default function ProductCustomizationModal({
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [notes, setNotes] = useState('')
+  const [recommendedProducts, setRecommendedProducts] = useState([])
   
   // For half-half pizzas
   const [availablePizzas, setAvailablePizzas] = useState([])
@@ -79,26 +80,48 @@ export default function ProductCustomizationModal({
         }
         
         setVariants({
-          size: sizeVariants,
-          crust: [
-            { _id: 'regular', name: 'أطراف عادية', price: 0, isDefault: true },
-            { _id: 'stuffed', name: 'أطراف محشية', price: 10 }
-          ]
+          size: sizeVariants
         })
         
-        // Set default variants
+        // Set default size variant
+        const defaultSize = sizeVariants.find(s => s.isDefault) || sizeVariants[0]
         setSelectedVariants({
-          size: 'small',
-          crust: 'regular'
+          size: defaultSize?._id || 'small'
         })
         
-        // Fetch all available addons
-        const addonsResponse = await fetch(`/api/addons`)
+        // Fetch all available addons + crust options in parallel
+        const [addonsResponse, crustResponse] = await Promise.all([
+          fetch('/api/addons'),
+          fetch('/api/addons?category=crust')
+        ])
         const addonsData = await addonsResponse.json()
-        
+        const crustData = await crustResponse.json()
+
         if (addonsData.success) {
           setAddons(addonsData.addons || [])
         }
+
+        // Build crust variants from API, fall back to built-in defaults
+        if (crustData.success && crustData.addons && crustData.addons.length > 0) {
+          const crustVariants = crustData.addons.map(a => ({
+            _id: a._id,
+            name: a.name,
+            price: a.sizes?.[0]?.price ?? a.price ?? 0,
+            isDefault: false
+          }))
+          crustVariants[0].isDefault = true
+          setVariants(prev => ({ ...prev, crust: crustVariants }))
+          setSelectedVariants(prev => ({ ...prev, crust: crustVariants[0]._id }))
+        } else {
+          // Fallback hardcoded values when no crust addons are configured
+          const fallback = [
+            { _id: 'regular', name: 'أطراف عادية', price: 0, isDefault: true },
+            { _id: 'stuffed', name: 'أطراف محشية', price: 10 }
+          ]
+          setVariants(prev => ({ ...prev, crust: fallback }))
+          setSelectedVariants(prev => ({ ...prev, crust: 'regular' }))
+        }
+
       } else {
         // Other products - fetch all available addons
         const addonsResponse = await fetch(`/api/addons`)
@@ -140,6 +163,19 @@ export default function ProductCustomizationModal({
         
       }
       
+      // Fetch recommended products (flag: ترشيحات)
+      try {
+        const recRes = await fetch('/api/products?flag=ترشيحات&available=true')
+        const recData = await recRes.json()
+        if (recData.success) {
+          setRecommendedProducts(
+            (recData.products || []).filter(p => p.id !== product.id)
+          )
+        }
+      } catch (err) {
+        console.error('Error fetching recommendations:', err)
+      }
+
     } catch (error) {
       console.error('Error setting up customizations:', error)
     } finally {
@@ -155,6 +191,7 @@ export default function ProductCustomizationModal({
       setSelectedAddons([])
       setNotes('')
       setQuantity(1)
+      setRecommendedProducts([])
       // Reset half-and-half selections
       setLeftSide({ pizza: null, variants: {}, addons: [] })
       setRightSide({ pizza: null, variants: {}, addons: [] })
@@ -340,6 +377,11 @@ export default function ProductCustomizationModal({
       })
     }
     
+    // Validate half-and-half: both halves must be selected
+    if (product.productType === 'half-half' && (!leftSide.pizza || !rightSide.pizza)) {
+      return
+    }
+
     const customization = {
       variants: variantObjects,
       addons: addonObjects,
@@ -631,6 +673,46 @@ export default function ProductCustomizationModal({
   }
 
   // Specific render functions for each category
+  const renderRecommendedSection = () => {
+    if (recommendedProducts.length === 0) return null
+    return (
+      <div className="mb-6">
+        <h4 className="font-arabic font-bold text-lg mb-3">⭐ ترشيحات</h4>
+        <div className="flex flex-col gap-3">
+          {recommendedProducts.map(rec => {
+            const recPrice = rec.sizes?.find(s => s.isDefault)?.price ?? rec.price ?? 0
+            return (
+              <div key={rec.id} className="flex items-center gap-3 border border-orange-100 rounded-lg p-3 bg-orange-50">
+                <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+                  {rec.image ? (
+                    <Image src={rec.image} alt={rec.name} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
+                      <span className="text-2xl">🍕</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-arabic font-bold text-gray-800 text-sm truncate">{rec.name}</p>
+                  <p className="font-arabic text-orange-500 text-sm font-bold">EGP {recPrice.toFixed(2)}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const recWithPrice = { ...rec, price: recPrice }
+                    onAddToCart(recWithPrice, 1, { variants: [], addons: [], notes: '' })
+                  }}
+                  className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-arabic font-bold px-3 py-2 rounded-lg transition-colors"
+                >
+                  أضف
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   const renderToppingsSection = () => renderAddonSection('topping', 'الإضافات', '🍕')
   const renderDrinksSection = () => renderAddonSection('drink', 'المشروبات', '🥤')
   const renderSidesSection = () => renderAddonSection('side', 'الأطباق الجانبية', '🍟')
@@ -748,6 +830,9 @@ export default function ProductCustomizationModal({
                 </>
               )}
 
+              {/* Recommended Products */}
+              {renderRecommendedSection()}
+
               {/* Quantity */}
               <div className="mb-6">
                 <h4 className="font-arabic font-bold text-lg mb-3">الكمية</h4>
@@ -795,10 +880,15 @@ export default function ProductCustomizationModal({
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-white border-t p-6">
+          {product.productType === 'half-half' && (!leftSide.pizza || !rightSide.pizza) && (
+            <p className="text-center text-sm text-orange-500 font-arabic mb-3">
+              يرجى اختيار النصفين لإضافة البيتزا للسلة
+            </p>
+          )}
           <button 
             onClick={handleAddToCart}
-            disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-arabic font-bold py-4 rounded-lg transition-colors flex items-center justify-center gap-3 text-lg"
+            disabled={loading || (product.productType === 'half-half' && (!leftSide.pizza || !rightSide.pizza))}
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-arabic font-bold py-4 rounded-lg transition-colors flex items-center justify-center gap-3 text-lg"
           >
             <span>أضف للسلة - EGP {calculateTotalPrice().toFixed(2)}</span>
           </button>

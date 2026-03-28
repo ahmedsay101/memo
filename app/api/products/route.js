@@ -11,6 +11,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const available = searchParams.get('available')
+    const flag = searchParams.get('flag')
     
     // Build query object
     let query = {}
@@ -21,6 +22,10 @@ export async function GET(request) {
     
     if (available !== null) {
       query.available = available === 'true'
+    }
+
+    if (flag) {
+      query.flags = flag
     }
     
     // Fetch products from database
@@ -43,6 +48,7 @@ export async function GET(request) {
       productType: product.productType || 'regular',
       hasVariants: product.hasVariants || false,
       hasAddons: product.hasAddons || false,
+      flags: product.flags || [],
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     }))

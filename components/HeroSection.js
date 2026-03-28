@@ -4,7 +4,7 @@ import Image from 'next/image'
 
 export default function HeroSection() {
   return (
-    <section className="bg-white py-48 px-4">
+    <section className="bg-white py-8 lg:py-48 px-4">
       <div className="container mx-auto" dir="rtl">
         <div className="flex flex-col lg:flex-row-reverse items-center justify-between gap-8">
         {/* Pizza Character Image - Left side in RTL */}
