@@ -917,9 +917,6 @@ export default function CartPage() {
                               <Image src="/images/meeza.png" alt="Meeza" width={60} height={36} className="object-contain h-9 w-auto" />
                             </div>
                           </div>
-                          <p className="text-xs text-gray-500 text-center mt-2 font-arabic">
-                            جميع البطاقات البنكية المصرية والدولية مقبولة
-                          </p>
                         </div>
 
                         {/* Payment Process Steps */}
@@ -935,16 +932,6 @@ export default function CartPage() {
                             <li>4. أكمل عملية الدفع والتحقق</li>
                             <li>5. سيتم توجيهك لصفحة تأكيد الطلب</li>
                           </ol>
-                        </div>
-
-                        {/* SSL Security Info */}
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <div className="flex items-center gap-2 text-green-600">
-                            <span>🔐</span>
-                            <span className="font-arabic text-sm">
-                              الدفع معالج عبر Paymob - بوابة دفع معتمدة من البنك المركزي المصري
-                            </span>
-                          </div>
                         </div>
 
                         {/* Email Field for Payment */}
