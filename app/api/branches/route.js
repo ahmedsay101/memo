@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import dbConnect from '../../../lib/mongodb'
 import Branch from '../../../models/Branch'
 
+export const dynamic = 'force-dynamic'
+
 // GET active branches (public)
 export async function GET() {
   try {

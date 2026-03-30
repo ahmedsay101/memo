@@ -9,6 +9,7 @@ import TermsAcceptance from '../../components/TermsAcceptance'
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
+  const [branches, setBranches] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
@@ -29,6 +30,14 @@ export default function CartPage() {
     notes: '',
     email: ''
   })
+
+  // Fetch branches from backend
+  useEffect(() => {
+    fetch('/api/branches')
+      .then(r => r.json())
+      .then(data => { if (data.success) setBranches(data.branches) })
+      .catch(() => {})
+  }, [])
 
   // Save order data to localStorage whenever it changes
   useEffect(() => {
@@ -772,10 +781,9 @@ export default function CartPage() {
                               }`}
                             >
                               <option value="">اختر الفرع الأقرب ليك</option>
-                              <option value="maadi">فرع المعادي - شارع 9</option>
-                              <option value="nasr-city">فرع مدينة نصر - العباسية</option>
-                              <option value="heliopolis">فرع مصر الجديدة - الكوربة</option>
-                              <option value="zamalek">فرع الزمالك - شارع 26 يوليو</option>
+                              {branches.map(branch => (
+                                <option key={branch.id} value={branch.id}>{branch.title}{branch.address ? ` - ${branch.address}` : ''}</option>
+                              ))}
                             </select>
                             {validationErrors.selectedBranch && (
                               <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.selectedBranch}</p>
@@ -899,23 +907,14 @@ export default function CartPage() {
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-arabic font-semibold text-gray-700 mb-3 text-center">البطاقات المدعومة:</h4>
                           <div className="flex items-center justify-center gap-4 flex-wrap">
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
-                              <div className="w-8 h-5 bg-blue-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">V</span>
-                              </div>
-                              <span className="text-blue-600 font-bold text-sm">VISA</span>
+                            <div className="bg-white px-3 py-2 rounded-lg shadow-sm border flex items-center justify-center">
+                              <Image src="/images/visa.png" alt="Visa" width={60} height={36} className="object-contain h-9 w-auto" />
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
-                              <div className="w-8 h-5 bg-red-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">●●</span>
-                              </div>
-                              <span className="text-red-600 font-bold text-sm">MasterCard</span>
+                            <div className="bg-white px-3 py-2 rounded-lg shadow-sm border flex items-center justify-center">
+                              <Image src="/images/mastercard.png" alt="Mastercard" width={60} height={36} className="object-contain h-9 w-auto" />
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
-                              <div className="w-8 h-5 bg-green-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">M</span>
-                              </div>
-                              <span className="text-green-600 font-bold text-sm">Meeza</span>
+                            <div className="bg-white px-3 py-2 rounded-lg shadow-sm border flex items-center justify-center">
+                              <Image src="/images/meeza.png" alt="Meeza" width={60} height={36} className="object-contain h-9 w-auto" />
                             </div>
                           </div>
                           <p className="text-xs text-gray-500 text-center mt-2 font-arabic">
