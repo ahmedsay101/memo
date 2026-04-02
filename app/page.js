@@ -17,7 +17,6 @@ export default function Home() {
         <NewOffersSection />
         <CustomerReviewsSection />
         <MenuSection />
-        <FlaggedProductsSection />
         <Footer />
       </div>
 
@@ -30,7 +29,7 @@ export default function Home() {
       >
         <img 
           src="/images/hotline.png" 
-          alt="00201020207615"
+          alt="15596"
           className="w-auto h-12 object-contain"
         />
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6 flex-shrink-0">

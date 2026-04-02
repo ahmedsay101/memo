@@ -11,7 +11,7 @@ export default function BranchesPage() {
   const [formData, setFormData] = useState({
     title: '',
     address: '',
-    phone: '00201020207615',
+    phone: '15596',
     hours: 'يومياً: 10:00 ص - 2:00 ص',
     isActive: true
   })
@@ -111,7 +111,7 @@ export default function BranchesPage() {
   }
 
   const resetForm = () => {
-    setFormData({ title: '', address: '', phone: '00201020207615', hours: 'يومياً: 10:00 ص - 2:00 ص', isActive: true })
+    setFormData({ title: '', address: '', phone: '15596', hours: 'يومياً: 10:00 ص - 2:00 ص', isActive: true })
     setEditingBranch(null)
     setShowModal(false)
   }

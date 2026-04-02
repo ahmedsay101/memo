@@ -13,7 +13,7 @@ const BranchSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    default: '00201020207615',
+    default: '15596',
     trim: true
   },
   hours: {

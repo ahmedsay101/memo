@@ -317,9 +317,9 @@ export default function MenuSection() {
                                       <span className="text-white font-arabic font-bold bg-red-600 px-4 py-2 rounded-lg">غير متوفر</span>
                                     </div>
                                   )}
-                                  {product.flags && product.flags.length > 0 && (
+                                  {product.flags && product.flags.filter(f => f !== 'ترشيحات').length > 0 && (
                                     <div className="absolute top-3 right-3 flex flex-col gap-1">
-                                      {product.flags.map((flag, i) => (
+                                      {product.flags.filter(f => f !== 'ترشيحات').map((flag, i) => (
                                         <span key={i} className="bg-orange-500 text-white text-xs font-bold font-arabic px-3 py-1 rounded-full shadow-md">{flag}</span>
                                       ))}
                                     </div>
@@ -391,9 +391,9 @@ export default function MenuSection() {
                               </span>
                             </div>
                           )}
-                          {product.flags && product.flags.length > 0 && (
+                          {product.flags && product.flags.filter(f => f !== 'ترشيحات').length > 0 && (
                             <div className="absolute top-3 right-3 flex flex-col gap-1">
-                              {product.flags.map((flag, i) => (
+                              {product.flags.filter(f => f !== 'ترشيحات').map((flag, i) => (
                                 <span key={i} className="bg-orange-500 text-white text-xs font-bold font-arabic px-3 py-1 rounded-full shadow-md">
                                   {flag}
                                 </span>

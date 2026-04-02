@@ -79,7 +79,7 @@ export default function TermsConditions() {
                 لأي استفسارات حول هذه الشروط والأحكام، يرجى التواصل معنا عبر:
               </p>
               <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>الهاتف: 00201020207615</li>
+                <li>الهاتف: 15596</li>
                 <li>البريد الإلكتروني: Memospizza37@gmail.com</li>
                 <li>العنوان: أحد فروعنا المذكورة في الصفحة الرئيسية</li>
               </ul>

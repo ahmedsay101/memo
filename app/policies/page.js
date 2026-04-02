@@ -150,7 +150,7 @@ export default function PoliciesPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>خدمة العملاء:</strong> 00201020207615</p>
+                    <p><strong>خدمة العملاء:</strong> 15596</p>
                   </div>
                   <div>
                     <p><strong>البريد الإلكتروني:</strong> Memospizza37@gmail.com</p>

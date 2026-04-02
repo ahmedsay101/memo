@@ -25,7 +25,7 @@ export async function GET() {
         }
       },
       contactInfo: {
-        phone: "00201020207615",
+        phone: "15596",
         email: "Memospizza37@gmail.com"
       }
     }
