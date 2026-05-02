@@ -46,7 +46,7 @@ services:
       # Persist user-uploaded images outside the container
       - uploads-data:/app/public/uploads
     ports:
-      - "80:3000"
+      - "8080:3000"
     networks:
       - memo-net
 
