@@ -16,7 +16,6 @@ export default function ProductCustomizationModal({
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [notes, setNotes] = useState('')
-  const [recommendedProducts, setRecommendedProducts] = useState([])
   
   // For half-half pizzas
   const [availablePizzas, setAvailablePizzas] = useState([])
@@ -162,19 +161,6 @@ export default function ProductCustomizationModal({
         })
         
       }
-      
-      // Fetch recommended products (flag: ترشيحات)
-      try {
-        const recRes = await fetch('/api/products?flag=ترشيحات&available=true')
-        const recData = await recRes.json()
-        if (recData.success) {
-          setRecommendedProducts(
-            (recData.products || []).filter(p => p.id !== product.id)
-          )
-        }
-      } catch (err) {
-        console.error('Error fetching recommendations:', err)
-      }
 
     } catch (error) {
       console.error('Error setting up customizations:', error)
@@ -191,7 +177,6 @@ export default function ProductCustomizationModal({
       setSelectedAddons([])
       setNotes('')
       setQuantity(1)
-      setRecommendedProducts([])
       // Reset half-and-half selections
       setLeftSide({ pizza: null, variants: {}, addons: [] })
       setRightSide({ pizza: null, variants: {}, addons: [] })
@@ -673,46 +658,6 @@ export default function ProductCustomizationModal({
   }
 
   // Specific render functions for each category
-  const renderRecommendedSection = () => {
-    if (recommendedProducts.length === 0) return null
-    return (
-      <div className="mb-6">
-        <h4 className="font-arabic font-bold text-lg mb-3">⭐ ترشيحات</h4>
-        <div className="flex flex-col gap-3">
-          {recommendedProducts.map(rec => {
-            const recPrice = rec.sizes?.find(s => s.isDefault)?.price ?? rec.price ?? 0
-            return (
-              <div key={rec.id} className="flex items-center gap-3 border border-orange-100 rounded-lg p-3 bg-orange-50">
-                <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
-                  {rec.image ? (
-                    <Image src={rec.image} alt={rec.name} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
-                      <span className="text-2xl">🍕</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-arabic font-bold text-gray-800 text-sm truncate">{rec.name}</p>
-                  <p className="font-arabic text-orange-500 text-sm font-bold">EGP {recPrice.toFixed(2)}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    const recWithPrice = { ...rec, price: recPrice }
-                    onAddToCart(recWithPrice, 1, { variants: [], addons: [], notes: '' })
-                  }}
-                  className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-arabic font-bold px-3 py-2 rounded-lg transition-colors"
-                >
-                  أضف
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
   const renderToppingsSection = () => renderAddonSection('topping', 'الإضافات', '🍕')
   const renderDrinksSection = () => renderAddonSection('drink', 'المشروبات', '🥤')
   const renderSidesSection = () => renderAddonSection('side', 'الأطباق الجانبية', '🍟')
@@ -829,9 +774,6 @@ export default function ProductCustomizationModal({
                   {renderSaucesSection()}
                 </>
               )}
-
-              {/* Recommended Products */}
-              {renderRecommendedSection()}
 
               {/* Quantity */}
               <div className="mb-6">

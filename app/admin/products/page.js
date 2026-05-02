@@ -25,7 +25,8 @@ export default function ProductsPage() {
     imageFile: null,
     description: '',
     applicableCategories: ['pizza'],
-    isAvailable: true
+    isAvailable: true,
+    flags: []
   })
 
   useEffect(() => {
@@ -168,7 +169,8 @@ export default function ProductsPage() {
           imageFile: null,
           description: '',
           applicableCategories: ['pizza'],
-          isAvailable: true
+          isAvailable: true,
+          flags: []
         })
       } else {
         alert(data.error || 'حدث خطأ')
@@ -201,7 +203,8 @@ export default function ProductsPage() {
       imageFile: null,
       description: addon.description || '',
       applicableCategories: addon.applicableCategories || ['pizza'],
-      isAvailable: addon.available
+      isAvailable: addon.available,
+      flags: addon.flags || []
     })
     setShowAddAddonModal(true)
   }
@@ -867,6 +870,78 @@ export default function ProductsPage() {
                     className="w-full p-2 border border-gray-300 rounded-lg"
                     rows="3"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    العلامات
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {addonFormData.flags.map((flag, index) => (
+                      <span key={index} className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-arabic">
+                        {flag}
+                        <button
+                          type="button"
+                          onClick={() => setAddonFormData(prev => ({ ...prev, flags: prev.flags.filter((_, i) => i !== index) }))}
+                          className="text-orange-500 hover:text-orange-700 font-bold"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="addonFlagInput"
+                      placeholder="مثال: جديد، الأكثر مبيعاً"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          const val = e.target.value.trim()
+                          if (val && !addonFormData.flags.includes(val)) {
+                            setAddonFormData(prev => ({ ...prev, flags: [...prev.flags, val] }))
+                            e.target.value = ''
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById('addonFlagInput')
+                        const val = input.value.trim()
+                        if (val && !addonFormData.flags.includes(val)) {
+                          setAddonFormData(prev => ({ ...prev, flags: [...prev.flags, val] }))
+                          input.value = ''
+                        }
+                      }}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-md text-sm"
+                    >
+                      إضافة
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {['جديد', 'الأكثر مبيعاً', 'عرض خاص', 'حصري', 'ترشيحات'].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => {
+                          if (!addonFormData.flags.includes(suggestion)) {
+                            setAddonFormData(prev => ({ ...prev, flags: [...prev.flags, suggestion] }))
+                          }
+                        }}
+                        className={`text-xs px-2 py-1 rounded-full border ${
+                          addonFormData.flags.includes(suggestion)
+                            ? 'bg-orange-100 border-orange-300 text-orange-600'
+                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">

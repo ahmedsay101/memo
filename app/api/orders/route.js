@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import dbConnect from '../../../lib/mongodb'
 import Order from '../../../models/Order'
+import Settings from '../../../models/Settings'
 
 export async function POST(request) {
   try {
@@ -20,6 +21,8 @@ export async function POST(request) {
       paymentMethod,
       items, 
       totalAmount,
+      deliveryFee: requestedDeliveryFee,
+      zone,
       notes 
     } = body
 
@@ -45,6 +48,28 @@ export async function POST(request) {
           { error: 'يجب اختيار الفرع للاستلام' },
           { status: 400 }
         )
+      }
+    }
+
+    // Resolve delivery fee from configured zones (server-side trust)
+    let resolvedDeliveryFee = 0
+    if (deliveryMethod === 'delivery') {
+      try {
+        const zonesSetting = await Settings.findOne({ key: 'deliveryZones' })
+        const zones = Array.isArray(zonesSetting?.value) ? zonesSetting.value : []
+        if (zone) {
+          const matched = zones.find(z => z && z.name === zone)
+          if (matched && typeof matched.fee === 'number') {
+            resolvedDeliveryFee = matched.fee
+          } else if (typeof requestedDeliveryFee === 'number') {
+            resolvedDeliveryFee = requestedDeliveryFee
+          }
+        } else if (typeof requestedDeliveryFee === 'number') {
+          resolvedDeliveryFee = requestedDeliveryFee
+        }
+      } catch (e) {
+        console.error('Error resolving delivery zone fee:', e)
+        resolvedDeliveryFee = typeof requestedDeliveryFee === 'number' ? requestedDeliveryFee : 0
       }
     }
 
@@ -120,13 +145,14 @@ export async function POST(request) {
     })
 
     // Add delivery fee if applicable
-    const deliveryFee = deliveryMethod === 'delivery' ? 20 : 0
+    const deliveryFee = deliveryMethod === 'delivery' ? resolvedDeliveryFee : 0
     calculatedTotal += deliveryFee
 
     // Create full address string for delivery
     let fullAddress = ''
     if (deliveryMethod === 'delivery') {
       fullAddress = address
+      if (zone) fullAddress = `منطقة ${zone} - ${fullAddress}`
       if (floor) fullAddress += ` - الدور ${floor}`
       if (apartment) fullAddress += ` - شقة ${apartment}`
       if (landmark) fullAddress += ` - علامة مميزة: ${landmark}`
@@ -140,6 +166,9 @@ export async function POST(request) {
       branch: deliveryMethod === 'pickup' ? selectedBranch : 'فرع الرياض الرئيسي',
       items: processedItems,
       totalAmount: totalAmount || calculatedTotal,
+      deliveryFee,
+      zone: deliveryMethod === 'delivery' ? (zone || '') : '',
+      deliveryMethod: deliveryMethod || 'delivery',
       notes: notes || '',
       status: 'pending'
     })

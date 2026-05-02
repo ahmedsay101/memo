@@ -8,7 +8,7 @@ export async function PUT(request, { params }) {
     
     const { id } = params
     const body = await request.json()
-    const { name, category, sizes, price, image, description, applicableCategories, isAvailable } = body
+    const { name, category, sizes, price, image, description, applicableCategories, isAvailable, flags } = body
     
     // Validation
     if (!name || !category) {
@@ -52,7 +52,8 @@ export async function PUT(request, { params }) {
       image: image?.trim() || '',
       description: description?.trim() || '',
       applicableCategories: applicableCategories || ['pizza'],
-      available: isAvailable !== false
+      available: isAvailable !== false,
+      flags: Array.isArray(flags) ? flags.map(f => String(f).trim()).filter(Boolean) : []
     }
 
     // Handle pricing structure

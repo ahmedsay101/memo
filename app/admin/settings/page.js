@@ -19,6 +19,11 @@ export default function SettingsPage() {
     }
   })
 
+  // Delivery zones state
+  const [deliveryZones, setDeliveryZones] = useState([])
+  const [savingZones, setSavingZones] = useState(false)
+  const [zonesMessage, setZonesMessage] = useState('')
+
   // Credentials state
   const [credentials, setCredentials] = useState({
     currentPassword: '',
@@ -43,6 +48,9 @@ export default function SettingsPage() {
         setSettings(data.settings)
         if (data.settings.workingHours) {
           setWorkingHours(data.settings.workingHours)
+        }
+        if (Array.isArray(data.settings.deliveryZones)) {
+          setDeliveryZones(data.settings.deliveryZones)
         }
       }
     } catch (error) {
@@ -89,6 +97,51 @@ export default function SettingsPage() {
         [field]: value
       }
     }))
+  }
+
+  // Delivery zones helpers
+  const addZone = () => {
+    setDeliveryZones(prev => [...prev, { name: '', fee: 0 }])
+  }
+
+  const updateZone = (index, field, value) => {
+    setDeliveryZones(prev => prev.map((z, i) => (
+      i === index
+        ? { ...z, [field]: field === 'fee' ? (value === '' ? '' : parseFloat(value)) : value }
+        : z
+    )))
+  }
+
+  const removeZone = (index) => {
+    setDeliveryZones(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const saveDeliveryZones = async () => {
+    // Basic validation
+    const cleaned = deliveryZones
+      .map(z => ({ name: (z.name || '').trim(), fee: Number(z.fee) || 0 }))
+      .filter(z => z.name)
+
+    setSavingZones(true)
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'deliveryZones', value: cleaned })
+      })
+      const data = await response.json()
+      if (data.success) {
+        setDeliveryZones(cleaned)
+        setZonesMessage('تم حفظ مناطق التوصيل بنجاح')
+        setTimeout(() => setZonesMessage(''), 3000)
+      } else {
+        setZonesMessage(`خطأ: ${data.error || 'تعذر الحفظ'}`)
+      }
+    } catch (error) {
+      setZonesMessage('فشل في حفظ مناطق التوصيل')
+    } finally {
+      setSavingZones(false)
+    }
   }
 
   const getToken = () => localStorage.getItem('adminToken')
@@ -289,6 +342,92 @@ export default function SettingsPage() {
                 <span className="text-red-600 font-medium">{workingHours.lastOrder.hours}</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Delivery Zones Section */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
+            🚚 مناطق التوصيل ورسومها
+          </h2>
+
+          {zonesMessage && (
+            <div className={`mb-6 p-4 rounded-lg text-center ${
+              zonesMessage.includes('خطأ') || zonesMessage.includes('فشل')
+                ? 'bg-red-100 text-red-700'
+                : 'bg-green-100 text-green-700'
+            }`}>
+              {zonesMessage}
+            </div>
+          )}
+
+          <p className="text-sm text-gray-600 mb-4">
+            أضف المناطق التي تخدمها وحدد رسوم التوصيل لكل منطقة. سيختار العميل المنطقة عند الطلب وسيتم احتساب الرسوم تلقائياً.
+          </p>
+
+          <div className="space-y-3">
+            {deliveryZones.length === 0 && (
+              <div className="text-center text-gray-500 py-6 border-2 border-dashed border-gray-200 rounded-lg">
+                لا توجد مناطق توصيل بعد. اضغط &quot;إضافة منطقة&quot; لإضافة أول منطقة.
+              </div>
+            )}
+
+            {deliveryZones.map((zone, index) => (
+              <div key={index} className="flex flex-col md:flex-row gap-3 items-stretch md:items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">اسم المنطقة</label>
+                  <input
+                    type="text"
+                    value={zone.name}
+                    onChange={(e) => updateZone(index, 'name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="مثال: المعادي، مدينة نصر"
+                  />
+                </div>
+                <div className="md:w-48">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">رسوم التوصيل (EGP)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={zone.fee}
+                    onChange={(e) => updateZone(index, 'fee', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="20"
+                  />
+                </div>
+                <div className="md:pt-5">
+                  <button
+                    type="button"
+                    onClick={() => removeZone(index)}
+                    className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    حذف
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <button
+              type="button"
+              onClick={addZone}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-2 rounded-lg text-sm border border-gray-300"
+            >
+              + إضافة منطقة
+            </button>
+            <button
+              onClick={saveDeliveryZones}
+              disabled={savingZones}
+              className={`px-8 py-3 rounded-lg text-white font-semibold ${
+                savingZones
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg transform hover:scale-105'
+              } transition-all duration-200`}
+            >
+              {savingZones ? 'جاري الحفظ...' : 'حفظ مناطق التوصيل'}
+            </button>
           </div>
         </div>
 

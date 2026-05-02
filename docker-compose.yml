@@ -1,0 +1,59 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: memo-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-restaurant-memo}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - memo-net
+    # Mongo is reachable only inside the docker network. Uncomment to expose for debugging:
+    # ports:
+    #   - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: memo-restaurant:latest
+    container_name: memo-app
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/restaurant-memo}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      PAYMOB_API_KEY: ${PAYMOB_API_KEY:-}
+      PAYMOB_INTEGRATION_ID: ${PAYMOB_INTEGRATION_ID:-}
+      PAYMOB_HMAC_SECRET: ${PAYMOB_HMAC_SECRET:-}
+      PAYMOB_WEBHOOK_URL: ${PAYMOB_WEBHOOK_URL:-}
+      PAYMOB_CALLBACK_URL: ${PAYMOB_CALLBACK_URL:-}
+    volumes:
+      # Persist user-uploaded images outside the container
+      - uploads-data:/app/public/uploads
+    ports:
+      - "80:3000"
+    networks:
+      - memo-net
+
+volumes:
+  mongo-data:
+  uploads-data:
+
+networks:
+  memo-net:
+    driver: bridge

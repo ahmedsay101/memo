@@ -10,6 +10,7 @@ import TermsAcceptance from '../../components/TermsAcceptance'
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
   const [branches, setBranches] = useState([])
+  const [recommendedProducts, setRecommendedProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
@@ -24,6 +25,7 @@ export default function CartPage() {
     floor: '',
     apartment: '',
     landmark: '',
+    zone: '',
     deliveryMethod: 'delivery', // 'delivery' or 'pickup'
     selectedBranch: '',
     paymentMethod: 'cash',
@@ -31,11 +33,33 @@ export default function CartPage() {
     email: ''
   })
 
+  const [deliveryZones, setDeliveryZones] = useState([])
+
   // Fetch branches from backend
   useEffect(() => {
     fetch('/api/branches')
       .then(r => r.json())
       .then(data => { if (data.success) setBranches(data.branches) })
+      .catch(() => {})
+  }, [])
+
+  // Fetch recommended products (flag: ترشيحات)
+  useEffect(() => {
+    fetch('/api/products?flag=ترشيحات&available=true')
+      .then(r => r.json())
+      .then(data => { if (data.success) setRecommendedProducts(data.products || []) })
+      .catch(() => {})
+  }, [])
+
+  // Fetch delivery zones
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.settings?.deliveryZones)) {
+          setDeliveryZones(data.settings.deliveryZones)
+        }
+      })
       .catch(() => {})
   }, [])
 
@@ -105,8 +129,36 @@ export default function CartPage() {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
   }
 
+  const addRecommendedToCart = (rec) => {
+    const recPrice = rec.sizes?.find(s => s.isDefault)?.price ?? rec.price ?? 0
+    const productKey = rec.id
+    const existing = cartItems.find(item => item.productKey === productKey)
+    let updatedCart
+    if (existing) {
+      updatedCart = cartItems.map(item =>
+        item.productKey === productKey ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    } else {
+      updatedCart = [...cartItems, {
+        productKey,
+        id: rec.id,
+        name: rec.name,
+        price: recPrice,
+        image: rec.image,
+        quantity: 1,
+        description: rec.description,
+        customization: null
+      }]
+    }
+    setCartItems(updatedCart)
+    localStorage.setItem('memoCart', JSON.stringify(updatedCart))
+    window.dispatchEvent(new CustomEvent('cartUpdated'))
+  }
+
   const getDeliveryFee = () => {
-    return orderData.deliveryMethod === 'delivery' ? 20 : 0
+    if (orderData.deliveryMethod !== 'delivery') return 0
+    const zone = deliveryZones.find(z => z && z.name === orderData.zone)
+    return zone && typeof zone.fee === 'number' ? zone.fee : 0
   }
 
   const getFinalTotal = () => {
@@ -130,6 +182,9 @@ export default function CartPage() {
     if (orderData.deliveryMethod === 'delivery') {
       if (!orderData.address.trim()) {
         errors.address = 'العنوان مطلوب للتوصيل'
+      }
+      if (deliveryZones.length > 0 && !orderData.zone) {
+        errors.zone = 'يرجى اختيار منطقة التوصيل'
       }
     }
     
@@ -289,6 +344,7 @@ export default function CartPage() {
         floor: orderData.floor,
         apartment: orderData.apartment,
         landmark: orderData.landmark,
+        zone: orderData.zone,
         deliveryMethod: orderData.deliveryMethod,
         selectedBranch: orderData.selectedBranch,
         paymentMethod: orderData.paymentMethod,
@@ -302,6 +358,7 @@ export default function CartPage() {
           customization: item.customization || null
         })),
         totalAmount: getFinalTotal(),
+        deliveryFee: getDeliveryFee(),
         notes: orderData.notes || ''
       }
 
@@ -602,6 +659,41 @@ export default function CartPage() {
                       ))}
                     </div>
                     
+                    {/* Recommended Add-ons */}
+                    {recommendedProducts.length > 0 && (
+                      <div className="mt-8">
+                        <h3 className="text-xl font-bold text-gray-800 font-arabic mb-4">تحب تضيف على الاوردر ؟</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {recommendedProducts.map(rec => {
+                            const recPrice = rec.sizes?.find(s => s.isDefault)?.price ?? rec.price ?? 0
+                            return (
+                              <div key={rec.id} className="flex items-center gap-3 border border-orange-100 rounded-lg p-3 bg-orange-50">
+                                <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+                                  {rec.image ? (
+                                    <Image src={rec.image} alt={rec.name} fill className="object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
+                                      <span className="text-2xl">🍕</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-arabic font-bold text-gray-800 text-sm truncate">{rec.name}</p>
+                                  <p className="font-arabic text-orange-500 text-sm font-bold">EGP {recPrice.toFixed(2)}</p>
+                                </div>
+                                <button
+                                  onClick={() => addRecommendedToCart(rec)}
+                                  className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-arabic font-bold px-3 py-2 rounded-lg transition-colors"
+                                >
+                                  أضف
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-6 text-left">
                       <button 
                         onClick={() => handleStepTransition(2)}
@@ -693,6 +785,29 @@ export default function CartPage() {
                               📍 العنوان *
                             </label>
                             
+                            {/* Zone selection */}
+                            {deliveryZones.length > 0 && (
+                              <div className="mb-3">
+                                <select
+                                  value={orderData.zone}
+                                  onChange={(e) => setOrderData({...orderData, zone: e.target.value})}
+                                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-arabic ${
+                                    validationErrors.zone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                  }`}
+                                >
+                                  <option value="">اختر منطقة التوصيل</option>
+                                  {deliveryZones.map((z, idx) => (
+                                    <option key={idx} value={z.name}>
+                                      {z.name} {typeof z.fee === 'number' ? `(رسوم التوصيل: ${z.fee} جنيه)` : ''}
+                                    </option>
+                                  ))}
+                                </select>
+                                {validationErrors.zone && (
+                                  <p className="text-red-500 text-sm mt-1 font-arabic">{validationErrors.zone}</p>
+                                )}
+                              </div>
+                            )}
+
                             {/* Main Address */}
                             <div className="mb-3">
                               <input

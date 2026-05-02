@@ -60,7 +60,11 @@ const AddonSchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 0
-  }
+  },
+  flags: [{
+    type: String,
+    trim: true
+  }]
 }, {
   timestamps: true
 })

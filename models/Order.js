@@ -67,6 +67,21 @@ const OrderSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  deliveryFee: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  zone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  deliveryMethod: {
+    type: String,
+    enum: ['delivery', 'pickup'],
+    default: 'delivery'
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'],

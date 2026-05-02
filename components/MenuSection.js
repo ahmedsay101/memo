@@ -298,8 +298,9 @@ export default function MenuSection() {
                         </button>
 
                         {/* Collapsible Products Grid */}
-                        <div className={`overflow-hidden transition-all duration-400 ease-in-out ${isOpen ? 'max-h-[5000px] opacity-100 mb-8' : 'max-h-0 opacity-0'}`}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-2">
+                        <div className={`grid transition-all duration-400 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-8' : 'grid-rows-[0fr] opacity-0'}`}>
+                          <div className="overflow-hidden min-h-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-2">
                             {subcategoryProducts.map((product) => (
                               <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                                 <div className="relative h-48 bg-gray-100">
@@ -351,6 +352,7 @@ export default function MenuSection() {
                                 </div>
                               </div>
                             ))}
+                            </div>
                           </div>
                         </div>
                       </>

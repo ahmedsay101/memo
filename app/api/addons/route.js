@@ -10,6 +10,7 @@ export async function GET(request) {
     
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
+    const flag = searchParams.get('flag')
     
     let query = { available: true }
     
@@ -26,6 +27,10 @@ export async function GET(request) {
         // For other categories, use the category directly
         query.category = category
       }
+    }
+
+    if (flag) {
+      query.flags = flag
     }
     
     console.log('🔍 Addons API query:', query)

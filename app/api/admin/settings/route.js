@@ -27,7 +27,8 @@ export async function GET() {
       contactInfo: {
         phone: "15596",
         email: "Memospizza37@gmail.com"
-      }
+      },
+      deliveryZones: []
     }
     
     // Merge default settings with existing settings
