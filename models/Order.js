@@ -48,17 +48,7 @@ const OrderSchema = new mongoose.Schema({
   branch: {
     type: String,
     required: [true, 'الفرع مطلوب'],
-    enum: [
-      'فرع الرياض الرئيسي', 
-      'فرع العليا', 
-      'فرع السليمانية', 
-      'فرع شمال الرياض', 
-      'فرع جنوب الرياض',
-      'maadi',  // Add English branch names
-      'nasr-city',
-      'heliopolis',
-      'downtown'
-    ],
+    trim: true,
     default: 'فرع الرياض الرئيسي'
   },
   items: [OrderItemSchema],
@@ -87,6 +77,22 @@ const OrderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'card'],
+    default: 'cash'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'paid'],
+    default: 'unpaid'
+  },
+  mpgsOrderId: {
+    type: String,
+    trim: true,
+    sparse: true,
+    unique: true
+  },
   notes: {
     type: String,
     default: ''
@@ -97,16 +103,32 @@ const OrderSchema = new mongoose.Schema({
 
 // Add indexes for better query performance
 OrderSchema.index({ status: 1, createdAt: -1 })
-OrderSchema.index({ orderNumber: 1 })
 OrderSchema.index({ customerName: 1 })
 OrderSchema.index({ phone: 1 })
+
+async function generateNextOrderNumber() {
+  const year = String(new Date().getFullYear())
+  const OrderModel = mongoose.model('Order')
+  const lastOrder = await OrderModel.findOne({
+    orderNumber: { $regex: `^${year}` }
+  })
+    .sort({ orderNumber: -1 })
+    .select('orderNumber')
+    .lean()
+
+  let nextSeq = 1
+  if (lastOrder?.orderNumber?.startsWith(year)) {
+    const seq = parseInt(lastOrder.orderNumber.slice(year.length), 10)
+    if (!isNaN(seq)) nextSeq = seq + 1
+  }
+
+  return `${year}${String(nextSeq).padStart(4, '0')}`
+}
 
 // Pre-save middleware to generate order number
 OrderSchema.pre('save', async function(next) {
   if (this.isNew && !this.orderNumber) {
-    const year = new Date().getFullYear()
-    const count = await mongoose.model('Order').countDocuments()
-    this.orderNumber = `${year}${String(count + 1).padStart(4, '0')}`
+    this.orderNumber = await generateNextOrderNumber()
   }
   next()
 })

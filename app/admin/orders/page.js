@@ -84,6 +84,24 @@ export default function OrdersPage() {
     return texts[status] || 'غير محدد'
   }
 
+  const getPaymentMethodText = (method) => {
+    return method === 'card' ? 'فيزا / ماستركارد' : 'كاش عند الاستلام'
+  }
+
+  const getPaymentStatusText = (status) => {
+    return status === 'paid' ? 'مدفوع' : 'غير مدفوع'
+  }
+
+  const getPaymentBadgeColor = (method, paymentStatus) => {
+    if (method === 'card' && paymentStatus === 'paid') {
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    }
+    if (method === 'card') {
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200'
+    }
+    return 'bg-amber-100 text-amber-800 border-amber-200'
+  }
+
   // Helper function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -189,6 +207,10 @@ export default function OrdersPage() {
           <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
             {getStatusText(order.status)}
           </span>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPaymentBadgeColor(order.paymentMethod, order.paymentStatus)}`}>
+            {order.paymentMethod === 'card' ? '💳' : '💵'} {getPaymentMethodText(order.paymentMethod || 'cash')}
+            {order.paymentMethod === 'card' && ` • ${getPaymentStatusText(order.paymentStatus || 'unpaid')}`}
+          </span>
         </div>
         <div className="text-left flex-shrink-0">
           <div className="text-xl sm:text-2xl font-bold text-teal-600 mb-1">
@@ -210,6 +232,15 @@ export default function OrdersPage() {
           <p><strong>الهاتف:</strong> {order.phone}</p>
           <p><strong>العنوان:</strong> {order.address}</p>
           <p><strong>الفرع:</strong> {order.branch}</p>
+          <p>
+            <strong>طريقة الدفع:</strong>{' '}
+            {getPaymentMethodText(order.paymentMethod || 'cash')}
+            {order.paymentMethod === 'card' && (
+              <span className="mr-1 text-gray-500">
+                ({getPaymentStatusText(order.paymentStatus || 'unpaid')})
+              </span>
+            )}
+          </p>
         </div>
         <div className="text-sm text-gray-500">
           <p>تاريخ الطلب: {formatDate(order.createdAt)}</p>
@@ -606,6 +637,21 @@ function OrderDetailsModal({ order, onClose }) {
                   {order.status === 'ready' && 'جاهز'}
                   {order.status === 'delivered' && 'تم التسليم'}
                   {order.status === 'cancelled' && 'ملغي'}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">طريقة الدفع:</span>{' '}
+                {order.paymentMethod === 'card' ? '💳' : '💵'}{' '}
+                {order.paymentMethod === 'card' ? 'فيزا / ماستركارد' : 'كاش عند الاستلام'}
+              </div>
+              <div>
+                <span className="font-medium">حالة الدفع:</span>{' '}
+                <span className={`px-2 py-1 rounded text-xs ${
+                  order.paymentStatus === 'paid'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-700'
+                }`}>
+                  {order.paymentStatus === 'paid' ? 'مدفوع ✅' : 'غير مدفوع'}
                 </span>
               </div>
             </div>

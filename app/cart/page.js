@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import TermsAcceptance from '../../components/TermsAcceptance'
+import { clearCartStorage } from '../../lib/cartStorage'
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
@@ -90,16 +91,22 @@ export default function CartPage() {
   }, [cartItems])
 
   useEffect(() => {
-    // Simulate loading cart items from localStorage or API
-    const timer = setTimeout(() => {
+    const syncCartFromStorage = () => {
       const savedCart = localStorage.getItem('memoCart')
-      if (savedCart) {
-        setCartItems(JSON.parse(savedCart))
-      }
+      setCartItems(savedCart ? JSON.parse(savedCart) : [])
+    }
+
+    const timer = setTimeout(() => {
+      syncCartFromStorage()
       setIsLoading(false)
     }, 500)
 
-    return () => clearTimeout(timer)
+    window.addEventListener('cartUpdated', syncCartFromStorage)
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('cartUpdated', syncCartFromStorage)
+    }
   }, [])
 
   const removeFromCart = (itemKey) => {
@@ -227,10 +234,7 @@ export default function CartPage() {
   }
 
   const clearOrderData = () => {
-    // Clear all saved order data when order is completed
-    localStorage.removeItem('memoOrderData')
-    localStorage.removeItem('memoCurrentStep')
-    localStorage.removeItem('memoCart')
+    clearCartStorage()
     setOrderData({
       customerName: '',
       phone: '',
@@ -246,15 +250,13 @@ export default function CartPage() {
     })
     setCurrentStep(1)
     setCartItems([])
-    // Dispatch event to update header cart count
-    window.dispatchEvent(new CustomEvent('cartUpdated'))
   }
 
   const handleOrderSubmit = async () => {
     try {
       setIsSubmitting(true)
       
-      // Check if payment method is card - handle Paymob integration
+      // Check if payment method is card - handle QNB MPGS integration
       if (orderData.paymentMethod === 'card') {
         await handleCardPayment()
         return
@@ -273,8 +275,7 @@ export default function CartPage() {
 
   const handleCardPayment = async () => {
     try {
-      // First, create the payment session with Paymob
-      const paymobResponse = await fetch('/api/payments/paymob', {
+      const mpgsResponse = await fetch('/api/payments/mpgs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,36 +299,29 @@ export default function CartPage() {
         })
       })
 
-      const paymobResult = await paymobResponse.json()
+      const mpgsResult = await mpgsResponse.json()
 
-      if (paymobResult.success) {
-        // Store order data in localStorage for post-payment processing
-        localStorage.setItem('pendingOrder', JSON.stringify({
-          orderData,
-          cartItems,
-          paymobOrderId: paymobResult.paymobOrderId,
-          totalAmount: getFinalTotal()
-        }))
-
-      if (paymobResult.success) {
-        // Store order data in localStorage for post-payment processing
-        localStorage.setItem('pendingOrder', JSON.stringify({
-          orderData,
-          cartItems,
-          paymobOrderId: paymobResult.paymobOrderId,
-          totalAmount: getFinalTotal(),
-          intentionId: paymobResult.intentionId
-        }))
-
-        // Direct redirect to Paymob unified checkout
-        window.location.href = paymobResult.paymentUrl
-      } else {
-        throw new Error(paymobResult.error || 'فشل في إنشاء جلسة الدفع')
-      }
-      } else {
-        throw new Error(paymobResult.error || 'فشل في إنشاء جلسة الدفع')
+      if (!mpgsResult.success) {
+        throw new Error(mpgsResult.error || 'فشل في إنشاء جلسة الدفع')
       }
 
+      localStorage.setItem('pendingOrder', JSON.stringify({
+        orderData,
+        cartItems,
+        mpgsOrderId: mpgsResult.orderId,
+        successIndicator: mpgsResult.successIndicator,
+        totalAmount: getFinalTotal(),
+        deliveryFee: getDeliveryFee()
+      }))
+
+      localStorage.setItem('mpgsCheckout', JSON.stringify({
+        sessionId: mpgsResult.sessionId,
+        merchantId: mpgsResult.merchantId,
+        checkoutScriptUrl: mpgsResult.checkoutScriptUrl,
+        orderId: mpgsResult.orderId
+      }))
+
+      window.location.href = '/mpgs-checkout'
     } catch (error) {
       console.error('Card payment error:', error)
       showModalMessage('خطأ في الدفع', `خطأ في معالجة الدفع: ${error.message}`, 'error')
@@ -982,7 +976,7 @@ export default function CartPage() {
                         }`}
                         onClick={() => setOrderData({...orderData, paymentMethod: 'card'})}
                       >
-                        💳 ادفع بالفيزا، ماستركارد، ميزة
+                        💳 ادفع بالفيزا أو ماستركارد
                       </button>
                       <button 
                         className={`flex-1 py-3 px-6 text-center font-arabic font-semibold rounded-t-lg transition-colors ${
@@ -1003,10 +997,10 @@ export default function CartPage() {
                         <div className="text-center py-8">
                           <div className="text-6xl mb-4">💳</div>
                           <h3 className="text-2xl font-bold text-gray-800 font-arabic mb-3">
-                            ادفع بالفيزا، ماستركارد، أو ميزة
+                            ادفع بالفيزا أو ماستركارد
                           </h3>
                           <p className="text-gray-600 font-arabic text-lg">
-                            ستتم إعادة توجيهك لصفحة الدفع الآمنة
+                            ستتم إعادة توجيهك لصفحة الدفع الآمنة عبر بنك QNB
                           </p>
                         </div>
 
@@ -1027,9 +1021,6 @@ export default function CartPage() {
                             </div>
                             <div className="bg-white px-3 py-2 rounded-lg shadow-sm border flex items-center justify-center">
                               <Image src="/images/mastercard.png" alt="Mastercard" width={60} height={36} className="object-contain h-9 w-auto" />
-                            </div>
-                            <div className="bg-white px-3 py-2 rounded-lg shadow-sm border flex items-center justify-center">
-                              <Image src="/images/meeza.png" alt="Meeza" width={60} height={36} className="object-contain h-9 w-auto" />
                             </div>
                           </div>
                         </div>
@@ -1172,14 +1163,6 @@ export default function CartPage() {
                           تطبيق
                         </button>
                       </div>
-                      
-                      {/* Applied Discount */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-arabic text-sm text-green-700">عندك كود خصم؟</span>
-                          <span className="font-arabic text-sm font-bold text-green-600">-EGP 20.00</span>
-                        </div>
-                      </div>
                     </div>
                   )}
                   
@@ -1192,13 +1175,6 @@ export default function CartPage() {
                       <span>EGP {getTotalPrice().toFixed(2)}</span>
                     </div>
                     
-                    {currentStep === 3 && (
-                      <div className="flex justify-between font-arabic text-green-600">
-                        <span>خصم</span>
-                        <span>-EGP 20.00</span>
-                      </div>
-                    )}
-                    
                     <div className="flex justify-between font-arabic text-gray-700">
                       <span>رسوم التوصيل</span>
                       <span>{getDeliveryFee() === 0 ? 'مجاناً' : `EGP ${getDeliveryFee().toFixed(2)}`}</span>
@@ -1210,7 +1186,7 @@ export default function CartPage() {
                   {/* Final Total */}
                   <div className="flex justify-between font-arabic font-bold text-xl text-gray-800">
                     <span>الإجمالي</span>
-                    <span>EGP {currentStep === 3 ? (getFinalTotal() - 20).toFixed(2) : getFinalTotal().toFixed(2)}</span>
+                    <span>EGP {getFinalTotal().toFixed(2)}</span>
                   </div>
 
                   {/* Payment Method Display (if on step 3) */}
@@ -1220,7 +1196,7 @@ export default function CartPage() {
                         <span className="font-arabic text-sm text-gray-600">طريقة الدفع:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-arabic text-sm font-semibold">
-                            {orderData.paymentMethod === 'card' ? 'فيزا، ماستركارد، ميزة' : 'كاش عند الاستلام'}
+                            {orderData.paymentMethod === 'card' ? 'فيزا، ماستركارد (QNB)' : 'كاش عند الاستلام'}
                           </span>
                           <span className="text-lg">
                             {orderData.paymentMethod === 'card' ? '💳' : '💵'}

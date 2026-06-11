@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import dbConnect from '../../../lib/mongodb'
 import Order from '../../../models/Order'
+import Branch from '../../../models/Branch'
 import Settings from '../../../models/Settings'
+import { formatOrderResponse, saveOrderSafely } from '../../../lib/orderHelpers'
 
 export async function POST(request) {
+  let mpgsOrderId
+
   try {
     await dbConnect()
     
@@ -19,12 +23,26 @@ export async function POST(request) {
       deliveryMethod,
       selectedBranch,
       paymentMethod,
+      paymentStatus,
       items, 
       totalAmount,
       deliveryFee: requestedDeliveryFee,
       zone,
       notes 
     } = body
+
+    mpgsOrderId = body.mpgsOrderId || null
+
+    if (mpgsOrderId) {
+      const existingOrder = await Order.findOne({ mpgsOrderId })
+      if (existingOrder) {
+        return NextResponse.json({
+          success: true,
+          message: 'الطلب موجود بالفعل',
+          order: formatOrderResponse(existingOrder),
+        }, { status: 200 })
+      }
+    }
 
     // Validate required fields
     if (!customerName || !phone || !items || !Array.isArray(items) || items.length === 0) {
@@ -158,42 +176,68 @@ export async function POST(request) {
       if (landmark) fullAddress += ` - علامة مميزة: ${landmark}`
     }
 
+    let resolvedBranch = 'فرع الرياض الرئيسي'
+    let pickupAddress = ''
+
+    if (deliveryMethod === 'pickup' && selectedBranch) {
+      const branchDoc = await Branch.findById(selectedBranch)
+      if (!branchDoc) {
+        return NextResponse.json(
+          { error: 'الفرع المحدد غير موجود' },
+          { status: 400 }
+        )
+      }
+      resolvedBranch = branchDoc.title
+      pickupAddress = branchDoc.address
+        ? `${branchDoc.title} - ${branchDoc.address}`
+        : branchDoc.title
+    }
+
+    const isPaidCardOrder = paymentMethod === 'card' && paymentStatus === 'paid'
+
     // Create the order
     const order = new Order({
       customerName: customerName.trim(),
       phone: phone.trim(),
-      address: deliveryMethod === 'delivery' ? fullAddress : selectedBranch || '',
-      branch: deliveryMethod === 'pickup' ? selectedBranch : 'فرع الرياض الرئيسي',
+      address: deliveryMethod === 'delivery' ? fullAddress : pickupAddress,
+      branch: resolvedBranch,
       items: processedItems,
       totalAmount: totalAmount || calculatedTotal,
       deliveryFee,
       zone: deliveryMethod === 'delivery' ? (zone || '') : '',
       deliveryMethod: deliveryMethod || 'delivery',
+      paymentMethod: paymentMethod || 'cash',
+      paymentStatus: paymentStatus || 'unpaid',
+      mpgsOrderId: mpgsOrderId || undefined,
       notes: notes || '',
-      status: 'pending'
+      status: isPaidCardOrder ? 'confirmed' : 'pending'
     })
 
-    const savedOrder = await order.save()
+    const savedOrder = await saveOrderSafely(Order, order, mpgsOrderId)
 
     return NextResponse.json({
       success: true,
       message: 'تم إنشاء الطلب بنجاح',
-      order: {
-        id: savedOrder._id,
-        orderNumber: savedOrder.orderNumber,
-        customerName: savedOrder.customerName,
-        phone: savedOrder.phone,
-        address: savedOrder.address,
-        branch: savedOrder.branch,
-        items: savedOrder.items,
-        totalAmount: savedOrder.totalAmount,
-        status: savedOrder.status,
-        createdAt: savedOrder.createdAt,
-        notes: savedOrder.notes
-      }
+      order: formatOrderResponse(savedOrder),
     }, { status: 201 })
 
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.mpgsOrderId && mpgsOrderId) {
+      try {
+        await dbConnect()
+        const existingOrder = await Order.findOne({ mpgsOrderId })
+        if (existingOrder) {
+          return NextResponse.json({
+            success: true,
+            message: 'الطلب موجود بالفعل',
+            order: formatOrderResponse(existingOrder),
+          }, { status: 200 })
+        }
+      } catch (lookupError) {
+        console.error('Error looking up existing MPGS order:', lookupError)
+      }
+    }
+
     console.error('Error creating order:', error)
     return NextResponse.json(
       { error: 'حدث خطأ في إنشاء الطلب، يرجى المحاولة مرة أخرى' },
