@@ -37,11 +37,13 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-in-production}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      PAYMOB_API_KEY: ${PAYMOB_API_KEY:-}
-      PAYMOB_INTEGRATION_ID: ${PAYMOB_INTEGRATION_ID:-}
-      PAYMOB_HMAC_SECRET: ${PAYMOB_HMAC_SECRET:-}
-      PAYMOB_WEBHOOK_URL: ${PAYMOB_WEBHOOK_URL:-}
-      PAYMOB_CALLBACK_URL: ${PAYMOB_CALLBACK_URL:-}
+      MPGS_HOST_URL: ${MPGS_HOST_URL:-qnbalahli.gateway.mastercard.com}
+      MPGS_MERCHANT_ID: ${MPGS_MERCHANT_ID:-MEMOSPIZZA}
+      MPGS_API_USERNAME: ${MPGS_API_USERNAME:-merchant.MEMOSPIZZA}
+      MPGS_API_PASSWORD: ${MPGS_API_PASSWORD:-}
+      MPGS_API_VERSION: ${MPGS_API_VERSION:-61}
+      MPGS_CURRENCY: ${MPGS_CURRENCY:-EGP}
+      MPGS_CALLBACK_URL: ${MPGS_CALLBACK_URL:-}
     volumes:
       # Persist user-uploaded images outside the container
       - uploads-data:/app/public/uploads
